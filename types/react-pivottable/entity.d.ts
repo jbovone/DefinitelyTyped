@@ -1,8 +1,8 @@
-import TTableInput from './input';
+import TableInput from './input';
 import { TQuerySort, TSorterFn } from './misc';
 
 export default interface PivotData {
-    data: TTableInput;
+    data: TableInput;
 
     /**
      * attribute names to prepopulate in row area
