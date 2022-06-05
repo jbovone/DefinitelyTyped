@@ -32,9 +32,8 @@
  *  ```
  * ];
  */
-type TTableInput =
+
+export type TableInput =
     | string[][]
     | Array<{ [K: string]: string }>
     | ((cb: (param: { [K: string]: string }) => void) => void);
-
-export default TTableInput;
