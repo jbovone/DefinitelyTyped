@@ -1,4 +1,4 @@
-// Type definitions for webpack (module API) 1.17
+// Type definitions for webpack (module API) 1.18
 // Project: https://github.com/webpack/webpack
 // Definitions by: use-strict <https://github.com/use-strict>
 //                 rhonsby <https://github.com/rhonsby>
@@ -10,8 +10,10 @@
  */
 
 declare namespace __WebpackModuleApi {
+    type ModuleId = string|number;
+
     interface RequireResolve {
-        (id: string): string | number;
+        (id: string): ModuleId;
     }
 
     interface RequireContext {
@@ -20,7 +22,7 @@ declare namespace __WebpackModuleApi {
         <T>(id: string): T;
         resolve(id: string): string;
         /** The module id of the context module. This may be useful for module.hot.accept. */
-        id: string;
+        id: ModuleId;
     }
 
     interface RequireFunction {
@@ -50,7 +52,7 @@ declare namespace __WebpackModuleApi {
         /**
          * Like require.resolve, but doesn’t include the module into the bundle. It’s a weak dependency.
          */
-        resolveWeak(path: string): number | string;
+        resolveWeak(path: string): ModuleId;
         /**
          * Ensures that the dependency is available, but don’t execute it. This can be use for optimizing the position of a module in the chunks.
          */
@@ -65,14 +67,13 @@ declare namespace __WebpackModuleApi {
 
     interface Module {
         exports: any;
-        id: string;
+        id: ModuleId;
         filename: string;
         loaded: boolean;
         parent: NodeModule | null | undefined;
         children: NodeModule[];
         hot?: Hot | undefined;
     }
-    type ModuleId = string|number;
 
     interface HotNotifierInfo {
         type:
@@ -308,6 +309,11 @@ declare var __webpack_hash__: any;
  * Generates a require function that is not parsed by webpack. Can be used to do cool stuff with a global require function if available.
  */
 declare var __non_webpack_require__: any;
+
+/**
+ * Initializes the shared scope. Fills it with known provided modules from this build and all remotes
+ */
+ declare var __webpack_init_sharing__: (scope: string) => Promise<void>;
 
 /**
  * Adds nonce to all scripts that webpack loads.

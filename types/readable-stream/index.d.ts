@@ -1,4 +1,4 @@
-// Type definitions for readable-stream 2.3
+// Type definitions for readable-stream 4.0
 // Project: https://github.com/nodejs/readable-stream
 // Definitions by: TeamworkGuy2 <https://github.com/TeamworkGuy2>
 //                   markdreyer <https://github.com/markdreyer>
@@ -14,6 +14,8 @@ declare class StringDecoder {
     write(buffer: Buffer): string;
     end(buffer?: Buffer): string;
 }
+
+type ComposeFnParam = (source: any) => void;
 
 interface _IEventEmitter {
     addListener(event: string | symbol, listener: (...args: any[]) => void): this;
@@ -56,6 +58,8 @@ declare class _Readable implements _IReadable {
     readonly readableFlowing: boolean | null;
     readonly readableHighWaterMark: number;
     readonly readableLength: number;
+    readonly closed: boolean;
+    readonly errored: Error | null;
     _read(size: number): void;
     read(size?: number): any;
     setEncoding(encoding: string): this;
@@ -295,6 +299,7 @@ declare namespace _Readable {
 
         constructor(options?: ReadableOptions);
         pipe<T extends _IWritable>(destination: T, options?: { end?: boolean | undefined; }): T;
+        compose<T extends NodeJS.ReadableStream>(stream: T | ComposeFnParam | Iterable<T> | AsyncIterable<T>, options?: { signal: AbortSignal }): T;
     }
 
     // ==== _stream_transform ====
@@ -406,6 +411,9 @@ declare namespace _Readable {
         writable: boolean;
         readonly writableHighWaterMark: number;
         readonly writableLength: number;
+        readonly closed: boolean;
+        readonly errored: Error | null;
+        readonly writableNeedDrain: boolean;
         constructor(opts?: WritableOptions);
         _write(chunk: any, encoding: string, callback: (error?: Error | null) => void): void;
         _writev?(chunks: Array<{ chunk: any, encoding: string }>, callback: (error?: Error | null) => void): void;
@@ -507,6 +515,7 @@ declare namespace _Readable {
     class Stream extends _Readable {
         constructor(options?: ReadableOptions);
         pipe<T extends _IWritable>(destination: T, options?: { end?: boolean | undefined; }): T;
+        compose<T extends NodeJS.ReadableStream>(stream: T | ComposeFnParam | Iterable<T> | AsyncIterable<T>, options?: { signal: AbortSignal }): T;
     }
 }
 

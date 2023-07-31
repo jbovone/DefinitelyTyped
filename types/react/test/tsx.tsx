@@ -83,7 +83,7 @@ const ComponentWithChildren3: React.FunctionComponent<React.PropsWithChildren<Co
 <ComponentWithChildren3 bar="42"></ComponentWithChildren3>;
 
 // svg sanity check
-<svg viewBox="0 0 1000 1000">
+<svg suppressHydrationWarning viewBox="0 0 1000 1000">
     <g>
         <text x="200" y="300" strokeWidth="5" stroke="black" alignmentBaseline="middle">
             Hello, world!
@@ -383,6 +383,11 @@ const ForwardRef = React.forwardRef((props: JSX.IntrinsicElements['div'], ref?: 
 const ForwardRef2 = React.forwardRef((props: React.ComponentProps<typeof ForwardRef>, ref?: React.Ref<HTMLDivElement>) => <ForwardRef {...props} ref={ref}/>);
 const divFnRef = (ref: HTMLDivElement|null) => { /* empty */ };
 const divRef = React.createRef<HTMLDivElement>();
+/**
+ * This should be fine to give React to manage i.e. pass it to `<div ref />`.
+ * However, TypeScript has no notion of write-only properties: https://github.com/microsoft/TypeScript/issues/21759
+ */
+const badlyAuthoredRef: React.RefObject<HTMLDivElement | null | undefined> = { current: undefined };
 
 <ForwardRef ref={divFnRef}/>;
 <ForwardRef ref={divRef}/>;
@@ -392,6 +397,8 @@ const divRef = React.createRef<HTMLDivElement>();
 <ForwardRef2 ref={divRef}/>;
 // @ts-expect-error
 <ForwardRef2 ref='string'/>;
+// @ts-expect-error Undesired behavior
+<ForwardRef2 ref={badlyAuthoredRef} />;
 
 const htmlElementFnRef = (instance: HTMLElement | null) => {};
 const htmlElementRef = React.createRef<HTMLElement>();
@@ -495,7 +502,7 @@ const HasHref2: React.ElementType<{ href?: string | undefined }> = 'div';
 const CustomElement: React.ElementType = 'my-undeclared-element';
 
 // custom elements now need to be declared as intrinsic elements
-declare global {
+declare module 'react' {
     namespace JSX {
         interface IntrinsicElements {
             'my-declared-element': {};
@@ -503,7 +510,21 @@ declare global {
     }
 }
 
-const CustomElement2: React.ElementType = 'my-declared-element';
+// Augmentations of the global namespace flow into the scoped JSX namespace
+// This is deprecated and will be removed in next next major of `@types/react`
+declare global {
+    namespace JSX {
+        interface IntrinsicElements {
+            'my-declared-element-deprecated': {};
+        }
+    }
+}
+
+const CustomElement2: React.ElementType = 'my-declared-element-deprecated';
+<my-declared-element-deprecated />;
+
+const CustomElement3: React.ElementType = 'my-declared-element';
+<my-declared-element />;
 
 interface TestPropTypesProps {
     foo: string;
@@ -583,4 +604,239 @@ function reactNodeTests() {
         }
     </div>;
     <div>{createChildren()}</div>;
+    // @ts-expect-error plain objects are not allowed
+    <div>{{ dave: true }}</div>;
+    // Will not type-check in a real project but accepted in DT tests since experimental.d.ts is part of compilation.
+    <div>{Promise.resolve('React')}</div>;
+}
+
+function elementTypeTests() {
+    const ReturnVoid = () => {};
+    // @ts-expect-error
+    const FCVoid: React.FC = ReturnVoid;
+    class RenderVoid extends React.Component {
+        // @ts-expect-error
+        render() {}
+    }
+
+    const ReturnUndefined = () => undefined;
+    const FCUndefined: React.FC = ReturnUndefined;
+    class RenderUndefined extends React.Component {
+        render() {
+          return undefined;
+        }
+    }
+
+    const ReturnNull = () => null;
+    const FCNull: React.FC = ReturnNull;
+    class RenderNull extends React.Component {
+        render() {
+          return null;
+        }
+    }
+
+    const ReturnNumber = () => 0xeac1;
+    const FCNumber: React.FC = ReturnNumber;
+    class RenderNumber extends React.Component {
+        render() {
+          return 0xeac1;
+        }
+    }
+
+    const ReturnString = () => 'Hello, Dave!';
+    const FCString: React.FC = ReturnString;
+    class RenderString extends React.Component {
+        render() {
+          return 'Hello, Dave!';
+        }
+    }
+
+    const ReturnSymbol = () => Symbol.for('react');
+    // @ts-expect-error
+    const FCSymbol: React.FC = ReturnSymbol;
+    class RenderSymbol extends React.Component {
+        // @ts-expect-error
+        render() {
+          return Symbol.for('react');
+        }
+    }
+
+    const ReturnArray = () => [<div key="one" />];
+    const FCVArray: React.FC = ReturnArray;
+    class RenderArray extends React.Component {
+        render() {
+          return [<div key="one" />];
+        }
+    }
+
+    const ReturnElement = () => <div />;
+    const FCElement: React.FC = ReturnElement;
+    class RenderElement extends React.Component {
+        render() {
+          return <div />;
+        }
+    }
+
+    const ReturnReactNode = ({children}: {children?: React.ReactNode}) => children;
+    const FCReactNode: React.FC = ReturnReactNode;
+    class RenderReactNode extends React.Component<{children?: React.ReactNode}> {
+        render() {
+          return this.props.children;
+        }
+    }
+
+    const ReturnPromise = () => Promise.resolve('React');
+    // Will not type-check in a real project but accepted in DT tests since experimental.d.ts is part of compilation.
+    const FCPromise: React.FC = ReturnPromise;
+    class RenderPromise extends React.Component {
+        // Will not type-check in a real project but accepted in DT tests since experimental.d.ts is part of compilation.
+        render() {
+          return Promise.resolve('React');
+        }
+    }
+
+    const ReturnWithLegacyContext = (props: { foo: string }, context: { bar: number }) => {
+        return (
+            <div>
+                foo: {props.foo}, bar: {context.bar}
+            </div>
+        );
+    };
+    const FCWithLegacyContext: React.FC<{ foo: string }> = ReturnWithLegacyContext;
+
+    class RenderWithLegacyContext extends React.Component {
+        static contextTypes = { foo: PropTypes.node.isRequired };
+
+        constructor(props: {}, context: {}) {
+            super(props, context);
+        }
+
+        render() {
+            // $ExpectType unknown
+            this.context;
+            return (this.context as any).foo;
+        }
+    }
+
+    // Desired behavior.
+    // @ts-expect-error
+    <ReturnVoid />;
+    // @ts-expect-error
+    React.createElement(ReturnVoid);
+    // @ts-expect-error
+    <RenderVoid />;
+    // @ts-expect-error
+    React.createElement(RenderVoid);
+
+    // Desired behavior.
+    <ReturnUndefined />;
+    React.createElement(ReturnUndefined);
+    <RenderUndefined />;
+    React.createElement(RenderUndefined);
+
+    // Desired behavior.
+    <ReturnNull />;
+    React.createElement(ReturnNull);
+    <RenderNull />;
+    React.createElement(RenderNull);
+
+    // Desired behavior.
+    <ReturnNumber />;
+    React.createElement(ReturnNumber);
+    <RenderNumber />;
+    React.createElement(RenderNumber);
+
+    // Desired behavior.
+    <ReturnString />;
+    React.createElement(ReturnString);
+    <RenderString />;
+    React.createElement(RenderString);
+
+    // Desired behavior.
+    // @ts-expect-error
+    <ReturnSymbol />;
+    // @ts-expect-error
+    React.createElement(ReturnSymbol);
+    // @ts-expect-error
+    <RenderSymbol />;
+    // @ts-expect-error
+    React.createElement(RenderSymbol);
+
+    <ReturnArray />;
+    React.createElement(ReturnArray);
+    <RenderArray />;
+    React.createElement(RenderArray);
+
+    // Desired behavior.
+    <ReturnElement />;
+    React.createElement(ReturnElement);
+    <RenderElement />;
+    React.createElement(RenderElement);
+
+    // Desired behavior.
+    <ReturnReactNode />;
+    React.createElement(ReturnReactNode);
+    <RenderReactNode />;
+    React.createElement(RenderReactNode);
+
+    // Will not type-check in a real project but accepted in DT tests since experimental.d.ts is part of compilation.
+    <ReturnPromise />;
+    // Will not type-check in a real project but accepted in DT tests since experimental.d.ts is part of compilation.
+    React.createElement(ReturnPromise);
+    // Will not type-check in a real project but accepted in DT tests since experimental.d.ts is part of compilation.
+    <RenderPromise />;
+    // Will not type-check in a real project but accepted in DT tests since experimental.d.ts is part of compilation.
+    React.createElement(RenderPromise);
+
+    <ReturnWithLegacyContext foo="one" />;
+    React.createElement(ReturnWithLegacyContext, {foo: 'one'});
+
+    <RenderWithLegacyContext />;
+    React.createElement(RenderWithLegacyContext);
+}
+
+function managingRefs() {
+    const genericRefBad = React.useRef<Element>();
+    // $ExpectType Element | undefined
+    genericRefBad.current;
+    const genericRef = React.useRef<Element>(null);
+    // $ExpectType Element | null
+    genericRef.current;
+
+    const inputRefBad = React.useRef<HTMLInputElement>();
+    // $ExpectType HTMLInputElement | undefined
+    inputRefBad.current;
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    // $ExpectType HTMLInputElement | null
+    inputRef.current;
+
+    // @ts-expect-error: Type 'undefined' is not assignable to type 'HTMLInputElement | null'
+    <input ref={genericRefBad} />;
+    <input ref={genericRef} />;
+    // @ts-expect-error: Type 'undefined' is not assignable to type 'HTMLInputElement | null'
+    <input ref={inputRefBad} />;
+    <input ref={inputRef} />;
+    // @ts-expect-error: Type 'undefined' is not assignable to type 'HTMLInputElement | null'
+    <div ref={inputRefBad} />;
+    // Undesired. Should not typecheck since
+    // `inputRef.current` will contain `HTMLDivElement | null` at runtime
+    // while it has `HTMLInputElement | null` at compiletime.
+    <div ref={inputRef} />;
+
+    const ElementComponent = React.forwardRef<Element>((_, ref) => {
+        if (typeof ref === 'object' && ref !== null) {
+            // $ExpectType Element | null
+            ref.current;
+        }
+        return <div ref={ref} />;
+    });
+    // @ts-expect-error Type 'undefined' is not assignable to type 'Element | null'
+    <ElementComponent ref={genericRefBad} />;
+    <ElementComponent ref={genericRef} />;
+    // @ts-expect-error Type 'undefined' is not assignable to type 'Element | null'
+    <ElementComponent ref={inputRefBad} />;
+    // Undesired, should not typecheck since
+    // `inputRef.current` will contain `Element | null` at runtime
+    // while it has `HTMLInputElement | null` at compiletime.
+    <ElementComponent ref={inputRef} />;
 }

@@ -19,17 +19,50 @@
 //                 Oleg Shilov <https://github.com/olegshilov>
 //                 Pablo Gracia <https://github.com/PabloGracia>
 //                 Jeffrey van Gogh <https://github.com/jvgogh>
+//                 John Abdou <https://github.com/jpabdou>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-import * as _d3 from 'd3';
 import { BoxPlotData, BoxPlotMarker } from './lib/traces/box';
 import { ViolinData } from './lib/traces/violin';
-import { OhclData } from './lib/traces/ohcl';
+import { OhlcData } from './lib/traces/ohlc';
 import { CandlestickData } from './lib/traces/candlestick';
 import { PieData } from './lib/traces/pie';
+import { SankeyData } from './lib/traces/sankey';
 
 export as namespace Plotly;
-export { BoxPlotData, ViolinData, OhclData, CandlestickData, PieData };
+export { BoxPlotData, ViolinData, OhlcData, CandlestickData, PieData, SankeyData };
+
+export type DefaultIcons =
+    | 'undo'
+    | 'home'
+    | 'camera-retro'
+    | 'zoombox'
+    | 'pan'
+    | 'zoom_plus'
+    | 'zoom_minus'
+    | 'autoscale'
+    | 'tooltip_basic'
+    | 'tooltip_compare'
+    | 'plotlylogo'
+    | 'z-axis'
+    | '3d_rotate'
+    | 'camera'
+    | 'movie'
+    | 'question'
+    | 'disk'
+    | 'drawopenpath'
+    | 'drawclosedpath'
+    | 'lasso'
+    | 'selectbox'
+    | 'drawline'
+    | 'drawrect'
+    | 'drawcircle'
+    | 'eraseshape'
+    | 'spikeline'
+    | 'pencil'
+    | 'newplotlylogo';
+
+export const Icons: { [K in DefaultIcons]: Icon };
 
 export interface StaticPlots {
     resize(root: Root): void;
@@ -64,6 +97,7 @@ export interface PlotDatum {
     xaxis: LayoutAxis;
     y: Datum;
     yaxis: LayoutAxis;
+    text: string;
 }
 
 export interface PlotMouseEvent {
@@ -198,6 +232,7 @@ export interface Mapbox {
     pitch: number;
     layers: Array<Partial<MapboxLayers>>;
     uirevision: number | string;
+    uid: string;
 }
 
 export interface SliderChangeEvent {
@@ -278,6 +313,8 @@ export interface PlotlyHTMLElement extends HTMLElement {
         callback: () => void,
     ): void;
     removeAllListeners: (handler: string) => void;
+    data: Data[];
+    layout: Layout;
 }
 
 export interface ToImgopts {
@@ -303,6 +340,7 @@ export interface PolarLayout {
     angularaxis: Partial<LayoutAxis>;
     gridshape: 'circular' | 'linear';
     uirevision: string | number;
+    uid: string;
 }
 
 export interface PlotlyDataLayoutConfig {
@@ -436,7 +474,7 @@ export interface Layout {
     annotations: Array<Partial<Annotations>>;
     shapes: Array<Partial<Shape>>;
     images: Array<Partial<Image>>;
-    updatemenus: {}; // TODO
+    updatemenus: Array<Partial<UpdateMenu>>;
     sliders: Array<Partial<Slider>>;
     legend: Partial<Legend>;
     font: Partial<Font>;
@@ -478,19 +516,31 @@ export interface Layout {
     template: Template;
     clickmode: 'event' | 'select' | 'event+select' | 'none';
     uirevision: number | string;
+    uid: string;
     datarevision: number | string;
     editrevision: number | string;
     selectionrevision: number | string;
+    modebar: Partial<ModeBar>;
 }
 
 export interface Legend extends Label {
-    traceorder: 'grouped' | 'normal' | 'reversed';
-    x: number;
-    y: number;
     borderwidth: number;
+    groupclick: 'toggleitem' | 'togglegroup';
+    grouptitlefont: Partial<Font>;
+    itemclick: 'toggle' | 'toggleothers' | false;
+    itemdoubleclick: 'toggle' | 'toggleothers' | false;
+    itemsizing: 'trace' | 'constant';
+    itemwidth: number;
     orientation: 'v' | 'h';
+    title: Partial<LegendTitle>;
     tracegroupgap: number;
+    traceorder: 'grouped' | 'normal' | 'reversed' | 'reversed+grouped';
+    uirevision: number | string;
+    uid: string;
+    valign: 'top' | 'middle' | 'bottom';
+    x: number;
     xanchor: 'auto' | 'left' | 'center' | 'right';
+    y: number;
     yanchor: 'auto' | 'top' | 'middle' | 'bottom';
 }
 
@@ -811,6 +861,7 @@ export interface LayoutAxis extends Axis {
     autotick: boolean;
     angle: any;
     griddash: Dash;
+    l2p: (v: Datum) => number;
 }
 
 export interface SceneAxis extends Axis {
@@ -824,6 +875,29 @@ export interface ShapeLine {
     color: string;
     width: number;
     dash: Dash;
+}
+
+export interface ShapeLabel {
+  font: Partial<Font>;
+  padding: number;
+  text: string;
+  textangle: 'auto' | number;
+  textposition:
+    | 'top left'
+    | 'top center'
+    | 'top right'
+    | 'middle left'
+    | 'middle center'
+    | 'middle right'
+    | 'bottom left'
+    | 'bottom center'
+    | 'bottom right'
+    | 'start'
+    | 'middle'
+    | 'end';
+  texttemplate: string;
+  xanchor: 'auto' | 'left' | 'center' | 'right';
+  yanchor: 'top' | 'middle' | 'bottom';
 }
 
 export interface Shape {
@@ -846,6 +920,7 @@ export interface Shape {
     templateitemname: string;
     opacity: number;
     line: Partial<ShapeLine>;
+    label: Partial<ShapeLabel>;
 }
 
 export interface Margin {
@@ -855,6 +930,19 @@ export interface Margin {
     r: number;
     pad: number;
 }
+
+export interface ModeBar {
+    activecolor: Color;
+    add: ModeBarDefaultButtons | ModeBarDefaultButtons[];
+    bgcolor: Color;
+    color: Color;
+    orientation: 'v' | 'h';
+    remove: ModeBarDefaultButtons | ModeBarDefaultButtons[];
+    uirevision: number | string;
+    uid: string;
+}
+
+export type ModeBarButtonAny = ModeBarDefaultButtons | ModeBarButton;
 
 export type ModeBarDefaultButtons =
     | 'lasso2d'
@@ -872,6 +960,7 @@ export type ModeBarDefaultButtons =
     | 'pan3d'
     | 'orbitRotation'
     | 'tableRotation'
+    | 'handleDrag3d'
     | 'resetCameraDefault3d'
     | 'resetCameraLastSave3d'
     | 'hoverClosest3d'
@@ -884,7 +973,15 @@ export type ModeBarDefaultButtons =
     | 'toggleHover'
     | 'toImage'
     | 'resetViews'
-    | 'toggleSpikelines';
+    | 'toggleSpikelines'
+    | 'zoomInMapbox'
+    | 'zoomOutMapbox'
+    | 'resetViewMapbox'
+    | 'togglespikelines'
+    | 'togglehover'
+    | 'hovercompare'
+    | 'hoverclosest'
+    | 'v1hovermode';
 
 export type ButtonClickEvent = (gd: PlotlyHTMLElement, ev: MouseEvent) => void;
 
@@ -1001,7 +1098,7 @@ export interface PlotNumber {
 }
 
 export interface Template {
-    data?: { [type in PlotType]?: Partial<PlotData> } | undefined;
+    data?: { [type in PlotType]?: Array<Partial<PlotData>> } | undefined;
     layout?: Partial<Layout> | undefined;
 }
 
@@ -1095,9 +1192,10 @@ export type Data =
     | Partial<PlotData>
     | Partial<BoxPlotData>
     | Partial<ViolinData>
-    | Partial<OhclData>
+    | Partial<OhlcData>
     | Partial<CandlestickData>
-    | Partial<PieData>;
+    | Partial<PieData>
+    | Partial<SankeyData>;
 
 export type Color =
     | string
@@ -1169,6 +1267,7 @@ export interface PlotData {
         | 'gauge+number+delta'
         | 'gauge+delta';
     histfunc: 'count' | 'sum' | 'avg' | 'min' | 'max';
+    histnorm: '' | 'percent' | 'probability' | 'density' | 'probability density';
     hoveron: 'points' | 'fills';
     hoverinfo:
         | 'all'
@@ -1210,6 +1309,10 @@ export interface PlotData {
     hoverlabel: Partial<HoverLabel>;
     hovertemplate: string | string[];
     hovertext: string | string[];
+    xhoverformat: string;
+    yhoverformat: string;
+    zhoverformat: string;
+    texttemplate: string | string[];
     textinfo:
         | 'label'
         | 'label+text'
@@ -1241,11 +1344,19 @@ export interface PlotData {
         | 'auto'
         | 'none';
     textfont: Partial<Font>;
+    textangle: 'auto' | number;
+    insidetextanchor: 'end' | 'middle' | 'start';
+    constraintext: 'inside' | 'outside' | 'both' | 'none';
     fill: 'none' | 'tozeroy' | 'tozerox' | 'tonexty' | 'tonextx' | 'toself' | 'tonext';
     fillcolor: string;
     fillpattern: Partial<Pattern>;
     showlegend: boolean;
     legendgroup: string;
+    legendgrouptitle: {
+        text: string;
+        font?: Partial<Font>;
+    };
+    legendrank: number;
     parents: string[];
     name: string;
     stackgroup: string;
@@ -1305,6 +1416,23 @@ export interface PlotData {
     reversescale: boolean;
     colorbar: Partial<ColorBar>;
     offset: number;
+    contours: Partial<{
+        coloring: 'fill' | 'heatmap' | 'lines' | 'none';
+        end: number;
+        labelfont: Partial<Font>;
+        labelformat: string;
+        operation: '=' | '<' | '>=' | '>' | '<=' | '[]' | '()' | '[)' | '(]' | '][' | ')(' | '](' | ')[';
+        showlabels: boolean;
+        showlines: boolean;
+        size: number;
+        start: number;
+        type: 'levels' | 'constraint';
+        value: number | [lowerBound: number, upperBound: number];
+    }>;
+    autocontour: boolean;
+    ncontours: number;
+    uirevision: string | number;
+    uid: string;
 }
 
 /**
@@ -1590,7 +1718,7 @@ export interface Config {
     modeBarButtonsToRemove: ModeBarDefaultButtons[];
 
     /** add mode bar button using config objects (see ./components/modebar/buttons.js for list of arguments) */
-    modeBarButtonsToAdd: ModeBarDefaultButtons[] | ModeBarButton[];
+    modeBarButtonsToAdd: ModeBarButtonAny[];
 
     /**
      * fully custom mode bar buttons as nested array, where the outer
@@ -1598,7 +1726,7 @@ export interface Config {
      * buttons config objects or names of default buttons
      * (see ./components/modebar/buttons.js for more info)
      */
-    modeBarButtons: Array<ModeBarDefaultButtons[] | ModeBarButton[]> | false;
+    modeBarButtons: ModeBarButtonAny[][] | false;
 
     /** add the plotly logo on the end of the mode bar */
     displaylogo: boolean;
@@ -1708,6 +1836,12 @@ export interface Label {
 
     /** Sets the default hover label font used by all traces on the graph. */
     font: Partial<Font>;
+}
+
+export interface LegendTitle {
+    font: Partial<Font>;
+    side: 'top' | 'left' | 'top left';
+    text: string;
 }
 
 export interface HoverLabel extends Label {
@@ -2325,6 +2459,151 @@ export interface Pattern {
      * and solidty of 1 shows only the foreground color without pattern.
      */
     solidity?: number;
+}
+
+export interface UpdateMenuButton {
+    /**
+     * Sets the arguments values to be passed to the Plotly method set in `method` on click.
+     */
+    args: any[];
+    /**
+     * Sets a 2nd set of `args`, these arguments values are passed to the Plotly method set in
+     * method` when clicking this button while in the active state. Use this to create
+     * toggle buttons.
+     */
+    args2: any[];
+    /**
+     * When true, the API method is executed. When false, all other behaviors are
+     * the same and command execution is skipped. This may be useful when hooking
+     * into, for example, the `plotly_buttonclicked` method and executing the API
+     * command manually without losing the benefit of the updatemenu automatically
+     * binding to the state of the plot through the specification of `method`
+     * and `args`.
+     */
+    execute: boolean;
+    /**
+     * Sets the text label to appear on the button.
+     */
+    label: string;
+    /**
+     * Sets the Plotly method to be called on click. If the `skip` method is
+     * used, the API updatemenu will function as normal but will perform no
+     * API calls and will not bind automatically to state updates. This may be
+     * used to create a component interface and attach to updatemenu events
+     * manually via JavaScript.
+     */
+    method: 'restyle' | 'relayout' | 'animate' | 'update' | 'skip';
+    /**
+     * When used in a template, named items are created in the output figure in
+     * addition to any items the figure already has in this array. You can modify
+     * these items in the output figure by making your own item with
+     * `templateitemname` matching this `name` alongside your modifications
+     * (including `visible: false` or `enabled: false` to hide it). Has no effect
+     * outside of a template.
+     */
+    name: string;
+    /**
+     * Used to refer to a named item in this array in the template. Named items
+     * from the template will be created even without a matching item in the
+     * input figure, but you can modify one by making an item with
+     * `templateitemname` matching its `name`, alongside your modifications
+     * (including `visible: false` or `enabled: false` to hide it). If there is
+     * no template or no matching item, this item will be hidden unless you
+     * explicitly show it with `visible: true`.
+     */
+    templateitemname: string;
+    /**
+     * Determines whether or not this button is visible.
+     */
+    visible: boolean;
+}
+
+export interface UpdateMenu {
+    /**
+     * Determines which button (by index starting from 0) is considered active.
+     */
+    active?: number;
+    /**
+     * Sets the background color of the update menu buttons.
+     */
+    bgcolor?: Color;
+    /**
+     * Sets the color of the border enclosing the update menu.
+     */
+    bordercolor?: Color;
+    /**
+     * Sets the width (in px) of the border enclosing the update menu.
+     */
+    borderwidth: number;
+    /**
+     * array of object where each object has one or more of the keys listed below.
+     */
+    buttons: Array<Partial<UpdateMenuButton>>;
+    /**
+     * Determines the direction in which the buttons are laid out, whether
+     * in a dropdown menu or a row/column of buttons. For `left` and `up`,
+     * the buttons will still appear in left-to-right or top-to-bottom order
+     * respectively.
+     */
+    direction: 'left' | 'up' | 'right' | 'down';
+    /**
+     * Sets the font of the update menu button text.
+     */
+    font: Partial<Font>;
+    /**
+     * When used in a template, named items are created in the output
+     * figure in addition to any items the figure already has in this array.
+     * You can modify these items in the output figure by making your own item
+     * with `templateitemname` matching this `name` alongside your modifications
+     * (including `visible: false` or `enabled: false` to hide it). Has no
+     * effect outside of a template.
+     */
+    name: string;
+    /**
+     * Sets the padding around the buttons or dropdown menu.
+     */
+    pad: Partial<Padding>;
+    /**
+     * Highlights active dropdown item or active button if true.
+     */
+    showactive: boolean;
+    /**
+     * Used to refer to a named item in this array in the template. Named
+     * items from the template will be created even without a matching item
+     * in the input figure, but you can modify one by making an item with
+     * `templateitemname` matching its `name`, alongside your modifications
+     * (including `visible: false` or `enabled: false` to hide it). If there
+     * is no template or no matching item, this item will be hidden unless
+     * you explicitly show it with `visible: true`.
+     */
+    templateitemname: string;
+    /**
+     * Determines whether the buttons are accessible via a dropdown menu or
+     * whether the buttons are stacked horizontally or vertically
+     */
+    type: 'dropdown' | 'buttons';
+    /**
+     * Determines whether or not the update menu is visible.
+     */
+    visible: boolean;
+    /**
+     * Sets the x position (in normalized coordinates) of the update menu.
+     */
+    x: number;
+    /**
+     * Sets the update menu's horizontal position anchor. This anchor binds
+     * the `x` position to the "left", "center" or "right" of the range selector.
+     */
+    xanchor: 'auto' | 'left' | 'center' | 'right';
+    /**
+     * Sets the y position (in normalized coordinates) of the update menu.
+     */
+    y: number;
+    /**
+     * Sets the update menu's vertical position anchor This anchor binds
+     * the `y` position to the "top", "middle" or "bottom" of the range selector.
+     */
+    yanchor: 'auto' | 'top' | 'middle' | 'bottom';
 }
 
 interface TraceModule {

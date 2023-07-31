@@ -1015,6 +1015,9 @@ function enforceMinRadius(selection: d3Selection.Selection<SVGCircleElement, Cir
     });
 }
 
+// @ts-expect-error
+circles.call(enforceMinRadius, '40'); // fails, minRadius of type number expected
+
 // returns 'this' selection
 circles = circles.call(enforceMinRadius, 40); // check chaining return type by re-assigning
 
@@ -1106,13 +1109,13 @@ str = d3Selection.style(n, 'opacity');
 // Tests of Local
 // ---------------------------------------------------------------------------------------
 
-let  xElement: Element = d3Selection.select<Element, any>('foo').node()!;
+const xElement: Element = d3Selection.select<Element, any>('foo').node()!;
 const foo: d3Selection.Local<number[]> = d3Selection.local<number[]>();
 const propName: string = foo.toString();
 
-// direct set & get on Local<T> object
-xElement = foo.set(xElement, [1, 2, 3]);
+// direct get & set on Local<T> object
 let array: number[] | undefined = foo.get(xElement);
+array = foo.set(xElement, [1, 2, 3]);
 
 // test read & write of .property() access to locals
 array = d3Selection.select(xElement)

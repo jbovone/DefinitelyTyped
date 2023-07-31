@@ -20,10 +20,7 @@ if (typeof content !== 'string' && 'stack' in content && content.stack) {
 }
 
 // @ts-expect-error
-const invalidContent: Content = {
-    ul: [],
-    ol: []
-};
+const invalidContent: Content = { ul: [], ol: [] };
 
 const staticBackground: TDocumentDefinitions = {
     content: 'Content',
@@ -368,4 +365,17 @@ const styleInheritance: Content = {
 const defaultPosition: Content = {
     text: 'foobar',
     absolutePosition: {} // defaults to 0-0
+};
+
+const unbreakableList: Content = {
+    unbreakable: true,
+    ul: ['One', 'Two', 'Three']
+};
+
+const singleSideMargins: Content = {
+    text: 'single-side margins',
+    marginTop: 1,
+    marginRight: 2,
+    marginBottom: 3,
+    marginLeft: 4,
 };

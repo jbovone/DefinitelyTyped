@@ -9,7 +9,6 @@ import {
     Button,
     ButtonGroup,
     Callout,
-    Card,
     Checkbox,
     Collage,
     ColorSchemeProvider,
@@ -24,30 +23,36 @@ import {
     FixedZIndex,
     Flex,
     Heading,
+    HelpButton,
     Icon,
     IconButton,
+    IconButtonFloating,
     Image,
     Label,
     Layer,
     Letterbox,
     Link,
+    List,
     Mask,
     Masonry,
     Modal,
     Module,
     NumberField,
     OnLinkNavigationProvider,
+    OverlayPanel,
     PageHeader,
     Pog,
     Popover,
+    Popovereducational,
     Pulsar,
     RadioButton,
+    RadioGroup,
     Row,
     ScrollBoundaryContainer,
     SearchField,
     SegmentedControl,
     SelectList,
-    Sheet,
+    SideNavigation,
     SlimBanner,
     Spinner,
     Stack,
@@ -67,6 +72,7 @@ import {
     useFocusVisible,
     useReducedMotion,
     Video,
+    WashAnimated,
 } from 'gestalt';
 import * as React from 'react';
 
@@ -134,7 +140,6 @@ const CheckUseReducedMotion = () => {
         event.__nonExistentProperty__;
     }}
 />;
-
 // Test Box accepts Ref.
 () => {
     const ref = React.useRef<HTMLDivElement>(null);
@@ -143,13 +148,12 @@ const CheckUseReducedMotion = () => {
 // Test BoxProps can be forwarded to Box.
 (props: BoxProps) => <Box {...props} />;
 
-<Button ref={React.createRef<HTMLAnchorElement>()} text={'Click me'} />;
 <Button text="" />;
 <ButtonGroup>
     <Button text={'Click me'} />
     <Button text={'Click me'} />
 </ButtonGroup>;
-<Card />;
+<WashAnimated />;
 <ComboBox
     accessibilityClearButtonLabel="combobox"
     id="combobox"
@@ -186,11 +190,14 @@ const CheckUseReducedMotion = () => {
 />;
 <Checkbox id={'1'} onChange={() => {}} />;
 <Collage columns={1} height={1} renderImage={({ height, index, width }) => null} width={1} />;
-<ColorSchemeProvider colorScheme="dark" id="docsExample" />;
+<ColorSchemeProvider colorScheme="dark" id="docsExample">
+    <Box />
+</ColorSchemeProvider>;
 <Column span={1} />;
 <Container />;
-<ScrollBoundaryContainer />;
-<ScrollBoundaryContainer height={1} overflow="scroll" />;
+<ScrollBoundaryContainer height={1} overflow="scroll">
+    <Text>Hello</Text>
+</ScrollBoundaryContainer>;
 <Divider />;
 <Dropdown id="dropdown-example" onDismiss={() => {}}>
     <Dropdown.Section label="View options">
@@ -205,10 +212,11 @@ const CheckUseReducedMotion = () => {
     </Dropdown.Section>
 </Dropdown>;
 <Fieldset legend="Fieldset Example">
-    <RadioButton id="id1" onChange={() => {}} />;
-    <RadioButton id="id2" onChange={() => {}} />;
-    <RadioButton id="id3" onChange={() => {}} />;
+    <RadioButton id="id1" value="" onChange={() => {}} />;
+    <RadioButton id="id2" value="" onChange={() => {}} />;
+    <RadioButton id="id3" value="" onChange={() => {}} />;
 </Fieldset>;
+
 <Flex>
     <Flex.Item>
         <Text>Flex</Text>
@@ -216,6 +224,16 @@ const CheckUseReducedMotion = () => {
 </Flex>;
 <Heading />;
 <Heading color="inverse" />;
+<HelpButton
+    accessibilityPopoverLabel=""
+    text=""
+    accessibilityLabel=""
+    link={{
+        externalLinkIcon: { color: 'brandPrimary', size: 100 },
+        href: '',
+        text: '',
+    }}
+/>;
 <Icon accessibilityLabel="icon" />;
 <IconButton
     accessibilityLabel="icon"
@@ -231,26 +249,44 @@ const CheckUseReducedMotion = () => {
 </Layer>;
 <Letterbox contentAspectRatio={1} height={1} width={1} />;
 <Link href="#" />;
-<Link href="#" externalLinkIcon={{ color: 'light', size: 'md' }} />;
+<Link href="#" externalLinkIcon={{ color: 'light', size: '100' }} />;
+<List label={<Text weight="bold">Regular spacing</Text>} type="unordered" spacing="regular">
+    <List.Item text="List item text" />
+    <List.Item text="List item text">
+        <List.Item text="List item text">
+            <List.Item text="List item text" />
+            <List.Item text="List item text" />
+            <List.Item text="List item text" />
+        </List.Item>
+        <List.Item text="List item text" />
+        <List.Item text="List item text" />
+    </List.Item>
+    <List.Item text="List item text" />
+</List>;
 <Mask />;
-<Masonry comp={MasonryComponent} items={[{}]} />;
+<Masonry renderItem={MasonryComponent} items={[{}]} />;
 <Modal accessibilityModalLabel="modal" onDismiss={() => {}} heading={<Text>Header</Text>} subHeading="header" />;
 <Module id="foo" icon="add" iconAccessibilityLabel="hello" title="world" type="info" />;
-<Module.Expandable
-    id="ModuleExample1"
-    accessibilityExpandLabel="Expand the module"
-    accessibilityCollapseLabel="Collapse the module"
-    items={[
-        {
-            title: 'Title',
-            summary: ['summary1', 'summary2', 'summary3'],
-            children: <Text size="md">Children1</Text>,
-            iconButton: <IconButton accessibilityLabel="test" />,
-        },
-    ]}
-    expandedIndex={1}
-    onExpandedChange={index => {}}
-></Module.Expandable>;
+<Module id="foo" icon="add" iconAccessibilityLabel="hello" title="world" type="info">
+    <Flex />
+</Module>;
+<Module id="foo">
+    <Module.Expandable
+        id="ModuleExample1"
+        accessibilityExpandLabel="Expand the module"
+        accessibilityCollapseLabel="Collapse the module"
+        items={[
+            {
+                title: 'Title',
+                summary: ['summary1', 'summary2', 'summary3'],
+                children: <Text size="100">Children1</Text>,
+                iconButton: <IconButton accessibilityLabel="test" />,
+            },
+        ]}
+        expandedIndex={1}
+        onExpandedChange={index => {}}
+    ></Module.Expandable>
+</Module>;
 <NumberField
     id="number"
     step={1}
@@ -280,11 +316,22 @@ const CheckUseReducedMotion = () => {
     }}
 />;
 <PageHeader title="Home" />;
+<PageHeader
+    title="Posts"
+    primaryAction={{
+        component: <Button color="red" size="lg" text="Create" />,
+        dropdownItems: [<Dropdown.Item onSelect={() => undefined} option={{ value: 'create', label: 'Create' }} />],
+    }}
+/>;
 <Pog />;
 <Popover onDismiss={() => {}} anchor={React.useRef<HTMLAnchorElement>().current} />;
+<Popovereducational accessibilityLabel="" anchor={null} onDismiss={() => undefined} />;
 
 <Pulsar />;
-<RadioButton id="id" onChange={() => {}} />;
+<RadioButton id="id" value="" onChange={() => {}} />;
+<RadioGroup id="foo" legend="foo" direction="column">
+    <RadioButton id="id3" value="" onChange={() => {}} />;
+</RadioGroup>;
 <Row gap={1}>
     <div />
 </Row>;
@@ -303,10 +350,37 @@ const CheckUseReducedMotion = () => {
     }}
 />;
 <SegmentedControl items={[]} selectedItemIndex={1} onChange={() => {}} />;
-<SelectList id="city" onChange={({ value }) => value} options={[]} />;
-<Sheet
+
+<SelectList id="city" onChange={({ value }) => value}>
+    <SelectList.Option label="Hi" value="hi" />
+</SelectList>;
+<SelectList
+    helperText="Note that the family members aren't secondary!"
+    id="selectlistexample15"
+    label="Choose your favorite secondary character"
+    onChange={() => {}}
+    placeholder="Select a character"
+    size="lg"
+>
+    <SelectList.Group disabled={true} label="Family">
+        {['Bart', 'Lisa', 'Homer', 'Marge', 'Maggie'].map(name => (
+            <SelectList.Option key={name} label={name} value={name} />
+        ))}
+    </SelectList.Group>
+    <SelectList.Group label="Neighbors">
+        {['Ned', 'Maude', 'Rod', 'Todd'].map(name => (
+            <SelectList.Option key={name} label={name} value={name} />
+        ))}
+    </SelectList.Group>
+    <SelectList.Group label="Cartoons">
+        {['Itchy', 'Scratchy', 'Poochie'].map(name => (
+            <SelectList.Option key={name} label={name} value={name} />
+        ))}
+    </SelectList.Group>
+</SelectList>;
+<OverlayPanel
     accessibilityDismissButtonLabel="Dismiss"
-    accessibilitySheetLabel="Example sheet to demonstrate different sizes"
+    accessibilityLabel="Example sheet to demonstrate different sizes"
     onDismiss={() => {}}
     footer={<Heading>Footer</Heading>}
 >
@@ -315,11 +389,72 @@ const CheckUseReducedMotion = () => {
             Content <button onClick={onDismissStart} />
         </Heading>
     )}
-</Sheet>;
+</OverlayPanel>;
+<SideNavigation accessibilityLabel="Nested items example">
+    <SideNavigation.TopItem
+        href="#"
+        onClick={({ event }) => event.preventDefault()}
+        label="Reporting"
+        icon="ads-stats"
+    />
+    <SideNavigation.TopItem
+        href="#"
+        onClick={({ event }) => event.preventDefault()}
+        label="Conversions"
+        icon="replace"
+    />
+    <SideNavigation.Section label="Audiences">
+        <SideNavigation.TopItem
+            href="#"
+            onClick={({ event }) => event.preventDefault()}
+            label="Thanksgiving"
+            icon="people"
+        />
+        <SideNavigation.Group label="Christmas" icon="people">
+            <SideNavigation.NestedItem
+                href="#"
+                onClick={({ event }) => event.preventDefault()}
+                label="Luxury Christmas"
+            />
+            <SideNavigation.NestedGroup label="Classic Christmas">
+                <SideNavigation.NestedItem
+                    href="#"
+                    onClick={({ event }) => event.preventDefault()}
+                    label="West Coast"
+                />
+                <SideNavigation.NestedItem
+                    href="#"
+                    onClick={({ event }) => event.preventDefault()}
+                    label="East Coast"
+                />
+            </SideNavigation.NestedGroup>
+            <SideNavigation.NestedGroup label="Alternative Christmas">
+                <SideNavigation.NestedItem
+                    href="#"
+                    onClick={({ event }) => event.preventDefault()}
+                    label="West Coast"
+                />
+                <SideNavigation.NestedItem
+                    href="#"
+                    onClick={({ event }) => event.preventDefault()}
+                    label="East Coast"
+                />
+            </SideNavigation.NestedGroup>
+        </SideNavigation.Group>
+        <SideNavigation.Group
+            label="Halloween"
+            display="static"
+            badge={{ text: 'hell', position: 'middle', type: 'darkWash' }}
+        >
+            <SideNavigation.NestedItem href="#" onClick={({ event }) => event.preventDefault()} label="East Coast" />
+            <SideNavigation.NestedItem href="#" onClick={({ event }) => event.preventDefault()} label="West Coast" />
+        </SideNavigation.Group>
+    </SideNavigation.Section>
+</SideNavigation>;
 <SlimBanner
     type="errorBare"
     iconAccessibilityLabel="Info"
-    message="There are issues with your account."
+    message={<Text>hell</Text>}
     helperLink={{
         text: 'Go to account',
         accessibilityLabel: 'Go to your account',
@@ -374,7 +509,7 @@ const CheckUseReducedMotion = () => {
             onExpand={() => {}}
             expandedContents={
                 <Box maxWidth={236} padding={2} column={12}>
-                    <Card image={<Avatar name="luna avatar" src="https://i.ibb.co/QY9qR7h/luna.png" />}>
+                    <WashAnimated image={<Avatar name="luna avatar" src="https://i.ibb.co/QY9qR7h/luna.png" />}>
                         <Text align="center" weight="bold">
                             <Link href="https://pinterest.com">
                                 <Box paddingX={3} paddingY={2}>
@@ -383,7 +518,7 @@ const CheckUseReducedMotion = () => {
                             </Link>
                         </Text>
                         <Text>Row expanded</Text>
-                    </Card>
+                    </WashAnimated>
                 </Box>
             }
         >
@@ -397,6 +532,11 @@ const CheckUseReducedMotion = () => {
                 <Text>June 25, 1993</Text>
             </Table.Cell>
         </Table.RowExpandable>
+        <Table.RowDrawer drawerContents={<Text>Hello</Text>} id="rowdrawer">
+            <Table.Cell>
+                <Text>Hello</Text>
+            </Table.Cell>
+        </Table.RowDrawer>
     </Table.Body>
     <Table.Footer>The end</Table.Footer>
 </Table>;
@@ -472,7 +612,7 @@ const CheckUseReducedMotion = () => {
     }}
 />;
 
-<Toast variant="error" text={<>Oops! Something went wrong. Please try again later.</>} />;
+<Toast text="hello" dissmissButton={{ onDismiss: () => undefined }} />;
 <Tooltip text="tooltip">
     <div />
 </Tooltip>;
@@ -509,13 +649,21 @@ const CheckUseReducedMotion = () => {
 />;
 <Icon accessibilityLabel={'sup'} icon={'add'} dangerouslySetSvgPath={{ __path: 'something' }} />;
 <IconButton accessibilityLabel={'something'} icon={'add-pin'} />;
-
+<IconButtonFloating
+    accessibilityControls="sections-dropdown-example"
+    accessibilityExpanded={true}
+    accessibilityPopupRole="menu"
+    accessibilityLabel="Help & Resources Menu"
+    icon="question-mark"
+    onClick={() => undefined}
+    selected={true}
+/>;
 new FixedZIndex(1);
 new CompositeZIndex([new FixedZIndex(1), new CompositeZIndex([new FixedZIndex(1)])]);
 
 <Datapoint
     title="Test Value"
     value="100"
-    trend={{ accesibilityLabel: 'Trending up', value: 50 }}
+    trend={{ accessibilityLabel: 'Trending up', value: 50 }}
     trendSentiment="good"
 />;

@@ -845,6 +845,23 @@ import { promisify } from 'node:util';
         key: 'asd',
         format: 'der',
     });
+    crypto.createPrivateKey({
+        key: 'asd',
+        format: 'jwk',
+    });
+}
+
+{
+    crypto.createPrivateKey({
+        key: 'abc123',
+        format: 'der',
+        encoding: 'hex'
+    });
+    crypto.createPublicKey({
+        key: 'abc123',
+        format: 'der',
+        encoding: 'hex'
+    });
 }
 
 {
@@ -935,15 +952,7 @@ import { promisify } from 'node:util';
     num = crypto.constants.SSL_OP_COOKIE_EXCHANGE;
     num = crypto.constants.SSL_OP_CRYPTOPRO_TLSEXT_BUG;
     num = crypto.constants.SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS;
-    num = crypto.constants.SSL_OP_EPHEMERAL_RSA;
     num = crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT;
-    num = crypto.constants.SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER;
-    num = crypto.constants.SSL_OP_MICROSOFT_SESS_ID_BUG;
-    num = crypto.constants.SSL_OP_MSIE_SSLV2_RSA_PADDING;
-    num = crypto.constants.SSL_OP_NETSCAPE_CA_DN_BUG;
-    num = crypto.constants.SSL_OP_NETSCAPE_CHALLENGE_BUG;
-    num = crypto.constants.SSL_OP_NETSCAPE_DEMO_CIPHER_CHANGE_BUG;
-    num = crypto.constants.SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG;
     num = crypto.constants.SSL_OP_NO_COMPRESSION;
     num = crypto.constants.SSL_OP_NO_QUERY_MTU;
     num = crypto.constants.SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION;
@@ -953,14 +962,6 @@ import { promisify } from 'node:util';
     num = crypto.constants.SSL_OP_NO_TLSv1;
     num = crypto.constants.SSL_OP_NO_TLSv1_1;
     num = crypto.constants.SSL_OP_NO_TLSv1_2;
-    num = crypto.constants.SSL_OP_PKCS1_CHECK_1;
-    num = crypto.constants.SSL_OP_PKCS1_CHECK_2;
-    num = crypto.constants.SSL_OP_SINGLE_DH_USE;
-    num = crypto.constants.SSL_OP_SINGLE_ECDH_USE;
-    num = crypto.constants.SSL_OP_SSLEAY_080_CLIENT_DH_BUG;
-    num = crypto.constants.SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG;
-    num = crypto.constants.SSL_OP_TLS_BLOCK_PADDING_BUG;
-    num = crypto.constants.SSL_OP_TLS_D5_BUG;
     num = crypto.constants.SSL_OP_TLS_ROLLBACK_BUG;
     num = crypto.constants.ENGINE_METHOD_RSA;
     num = crypto.constants.ENGINE_METHOD_DSA;
@@ -977,7 +978,6 @@ import { promisify } from 'node:util';
     num = crypto.constants.DH_CHECK_P_NOT_PRIME;
     num = crypto.constants.DH_UNABLE_TO_CHECK_GENERATOR;
     num = crypto.constants.DH_NOT_SUITABLE_GENERATOR;
-    num = crypto.constants.ALPN_ENABLED;
     num = crypto.constants.RSA_PKCS1_PADDING;
     num = crypto.constants.RSA_SSLV23_PADDING;
     num = crypto.constants.RSA_NO_PADDING;
@@ -1212,6 +1212,7 @@ import { promisify } from 'node:util';
     cert.checkEmail('test@test.com', { subject: 'always' }); // $ExpectType string | undefined
     cert.checkHost('test.com'); // $ExpectType string | undefined
     cert.checkHost('test.com', checkOpts); // $ExpectType string | undefined
+    cert.checkHost('test.com', { subject: 'default' }); // $ExpectType string | undefined
     cert.checkIP('1.1.1.1'); // $ExpectType string | undefined
     cert.checkIssued(new crypto.X509Certificate('dummycert')); // $ExpectType boolean
     cert.checkPrivateKey(crypto.createPrivateKey('dummy')); // $ExpectType boolean
@@ -1300,6 +1301,19 @@ import { promisify } from 'node:util';
     };
     crypto.createPublicKey({ key: jwk, format: 'jwk' });
     crypto.createPrivateKey({ key: jwk, format: 'jwk' });
+    crypto.verify(
+        'ES256',
+        Buffer.from('asd'),
+        { key: jwk, format: 'jwk' },
+        Buffer.from('sig')
+    );
+    crypto.verify(
+        'ES256',
+        Buffer.from('asd'),
+        { key: jwk, format: 'jwk' },
+        Buffer.from('sig'),
+        (error: Error | null, result: boolean): void => {}
+    );
 }
 
 {
@@ -1322,6 +1336,16 @@ import { promisify } from 'node:util';
     crypto.createDiffieHellman(2).setPublicKey('abcd', 'hex');
     crypto.createDiffieHellman(2).setPrivateKey('abcd', 'hex');
 
+    // Check permutations of `create` arguments
+    crypto.createDiffieHellman(new ArrayBuffer(8));
+    crypto.createDiffieHellman(new ArrayBuffer(8), 123);
+    crypto.createDiffieHellman(new ArrayBuffer(8), new ArrayBuffer(8));
+    crypto.createDiffieHellman(new ArrayBuffer(8), 'abcd', 'hex');
+    crypto.createDiffieHellman('abcd', 'hex');
+    crypto.createDiffieHellman('abcd', 'hex', 123);
+    crypto.createDiffieHellman('abcd', 'hex', new ArrayBuffer(8));
+    crypto.createDiffieHellman('abcd', 'hex', 'abcd', 'hex');
+
     // While DiffieHellmanGroup should not have them:
     // @ts-expect-error
     alice.setPublicKey('abcd', 'hex');
@@ -1334,6 +1358,32 @@ import { promisify } from 'node:util';
     const aliceSecret = alice.computeSecret(bob.getPublicKey(), null, 'hex'); // $ExpectType string
     const bobSecret = bob.computeSecret(alice.getPublicKey(), null, 'hex'); // $ExpectType string
     aliceSecret === bobSecret;
+}
+
+{
+    const alice = crypto.createECDH('prime256v1');
+    const bob = crypto.createECDH('prime256v1');
+
+    alice.setPrivateKey('abcd', 'hex');
+    bob.setPrivateKey(Buffer.from('abcd', 'hex'));
+
+    alice.generateKeys();
+
+    let alicePublicKey = alice.getPublicKey(); // $ExpectType Buffer
+    alicePublicKey = alice.getPublicKey(null);
+    alicePublicKey = alice.getPublicKey(null, 'compressed');
+    alicePublicKey = alice.getPublicKey(undefined, 'hybrid');
+
+    let bobPublicKey = bob.getPublicKey('hex'); // $ExpectType string
+    bobPublicKey = bob.getPublicKey('hex', 'compressed');
+
+    let aliceSecret = alice.computeSecret(bobPublicKey, 'hex'); // $ExpectType Buffer
+    aliceSecret = alice.computeSecret(Buffer.from(bobPublicKey, 'hex'));
+
+    let bobSecret = bob.computeSecret(alicePublicKey, 'hex'); // $ExpectType string
+    bobSecret = bob.computeSecret(alicePublicKey.toString('hex'), 'hex', 'hex');
+
+    aliceSecret.toString('hex') === bobSecret;
 }
 
 {
@@ -1364,7 +1414,7 @@ import { promisify } from 'node:util';
     let b: crypto.webcrypto.SubtleCrypto = crypto.webcrypto.subtle;
     b = crypto.subtle;
 
-    crypto.webcrypto.randomUUID(); // $ExpectType string
+    crypto.webcrypto.randomUUID(); // $ExpectType `${string}-${string}-${string}-${string}-${string}`
     crypto.webcrypto.getRandomValues(Buffer.alloc(8)); // $ExpectType Buffer
     crypto.webcrypto.getRandomValues(new BigInt64Array(4)); // $ExpectType BigInt64Array
     // @ts-expect-error
@@ -1379,6 +1429,7 @@ import { promisify } from 'node:util';
     crypto.webcrypto.subtle.generateKey({ name: 'HMAC', hash: 'SHA-1' }, true, ['sign', 'decrypt', 'deriveBits']).then((out) => {
         out.algorithm; // $ExpectType KeyAlgorithm
         out.extractable; // $ExpectType boolean
+        out.usages; // $ExpectType KeyUsage[]
     });
 }
 
@@ -1388,10 +1439,13 @@ import { promisify } from 'node:util';
     // The lack of top level await makes it annoying to use generateKey so let's just fake it for typings.
     const key = null as unknown as crypto.webcrypto.CryptoKey;
     const buf = new Uint8Array(16);
+    // Oops, test relied on DOM `globalThis.length` before
+    const length = 123;
 
     subtle.encrypt({ name: 'AES-CBC', iv: new Uint8Array(16) }, key, new TextEncoder().encode('hello')); // $ExpectType Promise<ArrayBuffer>
     subtle.decrypt({ name: 'AES-CBC', iv: new Uint8Array(16) }, key, new ArrayBuffer(8)); // $ExpectType Promise<ArrayBuffer>
     subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-512', salt: new ArrayBuffer(8), iterations: 1000 }, key, length); // $ExpectType Promise<ArrayBuffer>
+    subtle.deriveBits({ name: 'ECDH', public: key }, key, null); // $ExpectType Promise<ArrayBuffer>
     subtle.deriveKey({
         name: 'PBKDF2',
         hash: 'SHA-512',

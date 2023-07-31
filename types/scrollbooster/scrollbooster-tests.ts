@@ -1,7 +1,7 @@
 import ScrollBooster from 'scrollbooster';
 
-const viewport = document.querySelector<HTMLDivElement>('.viewport');
-const content = document.querySelector<HTMLDivElement>('.scrollable-content');
+const viewport = document.createElement('div');
+const content = document.createElement('div');
 
 const sb = new ScrollBooster({
     viewport,
@@ -24,6 +24,8 @@ const sb = new ScrollBooster({
                 ${-state.position.y}px
     )`;
         }
+        const dragOffsetX = state.dragOffset.x;
+        const dragOffsetY = state.dragOffset.y;
     },
     shouldScroll: (_, event) => {
         // disable scroll if clicked on button

@@ -5,7 +5,6 @@ import * as remote from './remote';
 /**
  * Creates a new WebDriver client for Chrome.
  *
- * @extends {webdriver.WebDriver}
  */
 export class Driver extends webdriver.ChromiumWebDriver {
   /**
@@ -47,7 +46,6 @@ export interface IPerfLoggingPrefs {
  */
 export class Options extends webdriver.Capabilities {
   /**
-   * @constructor
    */
   constructor();
 
@@ -68,6 +66,16 @@ export class Options extends webdriver.Capabilities {
    * @return {!Options} A self reference.
    */
   addArguments(...var_args: string[]): Options;
+
+  /**
+   * Sets the address of a Chromium remote debugging server to connect to.
+   * Address should be of the form "{hostname|IP address}:port"
+   * (e.g. "localhost:9222").
+   *
+   * @param {string} address The address to connect to.
+   * @return {!Options} A self reference.
+   */
+   debuggerAddress(address: string): Options;
 
   /**
    * Configures the chromedriver to start Chrome in headless mode.
@@ -297,7 +305,6 @@ export class ServiceBuilder extends remote.DriverService.Builder {
    *     PATH.
    * @throws {Error} If provided executable does not exist, or the chromedriver
    *     cannot be found on the PATH.
-   * @constructor
    */
   constructor(opt_exe?: string);
 

@@ -90,8 +90,12 @@ const { r2: { upload: { token }} } = await (async () => {
     const r3: Attachments.UploadResponseModel = await client.attachments.upload(Buffer.alloc(8), {
         filename: "filename",
     });
+    const r4: Attachments.UploadResponseModel = await client.attachments.upload(Buffer.from("Test"), {
+        filename: "filename",
+        binary: true
+    });
 
-    return { r1, r2, r3 };
+    return { r1, r2, r3, r4 };
 })();
 
 /** Tickets Methods */
@@ -164,6 +168,20 @@ client.ticketfields.create(
     },
     zendeskCallback,
 );
+
+/** Groups Methods */
+client.groups.list(zendeskCallback);
+client.groups.list().then(zendeskCallback);
+client.groups.assignable(zendeskCallback);
+client.groups.assignable().then(zendeskCallback);
+client.groups.show(123, zendeskCallback);
+client.groups.show(123).then(zendeskCallback);
+client.groups.create({ group: { name: "foo", default: false, description: "bar" } }, zendeskCallback);
+client.groups.create({ group: { name: "foo", default: false, description: "bar" } }).then(zendeskCallback);
+client.groups.update(123, { group: { name: "foo" } }, zendeskCallback);
+client.groups.update(123, { group: { name: "foo" } }).then(zendeskCallback);
+client.groups.delete(123, zendeskCallback);
+client.groups.delete(123).then(zendeskCallback);
 
 /** Users Methods */
 client.users.auth(zendeskCallback);

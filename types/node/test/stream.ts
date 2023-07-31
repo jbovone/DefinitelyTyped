@@ -4,12 +4,13 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { createGzip, constants } from 'node:zlib';
 import assert = require('node:assert');
 import { Http2ServerResponse } from 'node:http2';
-import { text, json, buffer } from 'node:stream/consumers';
+import { text, json, buffer, arrayBuffer, blob } from 'node:stream/consumers';
 import { pipeline as pipelinePromise } from 'node:stream/promises';
 import { stdout } from 'node:process';
 import { ReadableStream, WritableStream, TransformStream } from 'node:stream/web';
 import { setInterval as every } from 'node:timers/promises';
-import { MessageChannel } from 'node:worker_threads';
+import { MessageChannel as NodeMC } from 'node:worker_threads';
+import { performance } from 'node:perf_hooks';
 
 // Simplified constructors
 function simplified_stream_ctor_test() {
@@ -458,25 +459,48 @@ async function streamPipelineAsyncPromiseAbortTransform() {
         });
 }
 
-async function readableToString() {
+async function streamPipelineAsyncPromiseOptions() {
+    const { signal } = new AbortController();
+
+    // Empty options
+    pipelinePromise(process.stdin,
+        process.stdout,
+        {});
+
+    // options with signal property
+    pipelinePromise(process.stdin,
+        process.stdout,
+        { signal });
+
+    // options with end property
+    pipelinePromise(process.stdin,
+        process.stdout,
+        { end: false });
+
+    // options with both properties
+    pipelinePromise(process.stdin,
+        process.stdout,
+        { signal, end: false });
+
+    // options with undefined properties
+    pipelinePromise(process.stdin,
+        process.stdout,
+        { signal: undefined, end: undefined });
+}
+
+async function testConsumers() {
     const r = createReadStream('file.txt');
 
     // $ExpectType string
     await text(r);
-}
-
-async function readableToJson() {
-    const r = createReadStream('file.txt');
-
     // $ExpectType unknown
     await json(r);
-}
-
-async function readableToBuffer() {
-    const r = createReadStream('file.txt');
-
     // $ExpectType Buffer
     await buffer(r);
+    // $ExpectType ArrayBuffer
+    await arrayBuffer(r);
+    // $ExpectType Blob
+    await blob(r);
 }
 
 // https://nodejs.org/api/stream.html#stream_readable_pipe_destination_options
@@ -557,6 +581,55 @@ addAbortSignal(new AbortSignal(), new Readable());
     Readable.fromWeb(web, { emitClose: true });
 }
 
+{
+    const writable = new Writable();
+    // $ExpectType WritableStream<any>
+    Writable.toWeb(writable);
+}
+
+{
+    const web = new WritableStream();
+
+    // $ExpectType Writable
+    Writable.fromWeb(web);
+
+    // Handles subset of WritableStream param
+    // $ExpectType Writable
+    Writable.fromWeb(web, { objectMode: true });
+
+    // When the param includes unsupported WritableStream
+    // @ts-expect-error
+    Writable.fromWeb(web, { write: true });
+}
+
+{
+    const duplex = new Duplex();
+    // $ExpectType { readable: ReadableStream<any>; writable: WritableStream<any>; }
+    Duplex.toWeb(duplex);
+}
+
+{
+    const readable = new ReadableStream();
+    const writable = new WritableStream();
+
+    // $ExpectType Duplex
+    Duplex.fromWeb({ readable, writable });
+
+    // Handles subset of DuplexOptions param
+    // $ExpectType Duplex
+    Duplex.fromWeb({ readable, writable }, { objectMode: true });
+
+    // When the param includes unsupported DuplexOptions
+    // @ts-expect-error
+    Duplex.fromWeb({ readable, writable }, { emitClose: true });
+
+    // $ExpectType Duplex
+    Duplex.from(readable);
+
+    // $ExpectType Duplex
+    Duplex.from(writable);
+}
+
 async function testReadableStream() {
     const SECOND = 1000;
 
@@ -610,7 +683,14 @@ async function testTransformStream() {
 // https://nodejs.org/dist/latest-v16.x/docs/api/webstreams.html#transferring-with-postmessage_2
 async function testTransferringStreamWithPostMessage() {
     const stream = new TransformStream();
-    const {port1, port2} = new MessageChannel();
+    {
+        // Global constructor
+        const {port1, port2} = new MessageChannel();
+    }
+    {
+        // Constructor from module
+        const {port1, port2} = new NodeMC();
+    }
 
     // error: TypeError: port1.postMessage is not a function
     // port1.onmessage = ({data}) => {
@@ -619,4 +699,22 @@ async function testTransferringStreamWithPostMessage() {
 
     // error TS2532: Cannot use 'stream' as a target of a postMessage call because it is not a Transferable.
     // port2.postMessage(stream, [stream]);
+}
+
+{
+    // checking the type definitions for the events on the Duplex class and subclasses
+    const transform = new Transform();
+    transform.on('pipe', (src) => {
+        // $ExpectType Readable
+        src;
+    }).once('unpipe', (src) => {
+        // $ExpectType Readable
+        src;
+    }).addListener('data', (chunk) => {
+        // $ExpectType any
+        chunk;
+    }).prependOnceListener('error', (err) => {
+        // $ExpectType Error
+        err;
+    });
 }

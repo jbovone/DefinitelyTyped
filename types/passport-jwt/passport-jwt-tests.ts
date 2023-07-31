@@ -44,5 +44,14 @@ opts.jwtFromRequest = (req: Request) => {
 };
 opts.secretOrKey = new Buffer('secret');
 opts.secretOrKeyProvider = (request, rawJwtToken, done) => done(null, new Buffer('secret'));
+opts.audience = ['example1.org', 'example2.org']
 
-declare function findUser(condition: { id: string }, callback: (error: any, user: any) => void): void;
+class UserModel {}
+
+declare global {
+    namespace Express {
+        // tslint:disable-next-line:no-empty-interface
+        interface User extends UserModel {}
+    }
+}
+declare function findUser(condition: { id: string }, callback: (error: any, user: UserModel) => void): void;

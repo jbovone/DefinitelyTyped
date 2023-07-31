@@ -10,9 +10,9 @@ import {
     Mesh,
     Material,
     ColorRepresentation,
-} from '../../../src/Three';
-import { Pass, FullScreenQuad } from '../postprocessing/Pass';
-import { Reflector } from '../objects/ReflectorForSSRPass';
+} from '../../../src/Three.js';
+import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
+import { ReflectorForSSRPass } from '../objects/ReflectorForSSRPass.js';
 
 export interface SSRPassParams {
     renderer: WebGLRenderer;
@@ -23,7 +23,7 @@ export interface SSRPassParams {
     selects: Mesh[] | null;
     isPerspectiveCamera?: boolean | undefined;
     isBouncing?: boolean | undefined;
-    groundReflector: Reflector | null;
+    groundReflector: ReflectorForSSRPass | null;
 }
 
 export class SSRPass extends Pass {
@@ -33,7 +33,7 @@ export class SSRPass extends Pass {
     renderer: WebGLRenderer;
     scene: Scene;
     camera: Camera;
-    groundReflector: Reflector | null;
+    groundReflector: ReflectorForSSRPass | null;
     opacity: number;
     output: number;
     maxDistance: number;

@@ -26,7 +26,6 @@
 //                 Xianming Zhong <https://github.com/chinesedfan>
 //                 Valentyn Tolochko <https://github.com/vtolochk>
 //                 Sergey Sychev <https://github.com/SychevSP>
-//                 Kelvin Chu <https://github.com/RageBill>
 //                 Daiki Ihara <https://github.com/sasurau4>
 //                 Abe Dolinger <https://github.com/256hz>
 //                 Dominique Richard <https://github.com/doumart>
@@ -950,6 +949,11 @@ export interface TextPropsIOS {
 }
 
 export interface TextPropsAndroid {
+    /**
+     * Specifies the disabled state of the text view for testing purposes.
+     */
+    disabled?: boolean | undefined;
+
     /**
      * Lets the user select text, to use the native copy and paste functionality.
      */
@@ -3971,12 +3975,12 @@ export interface FlatListProps<ItemT> extends VirtualizedListProps<ItemT> {
     /**
      * Rendered when the list is empty.
      */
-    ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListEmptyComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Rendered at the very end of the list.
      */
-    ListFooterComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListFooterComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Styling for internal View for ListFooterComponent
@@ -3986,7 +3990,7 @@ export interface FlatListProps<ItemT> extends VirtualizedListProps<ItemT> {
     /**
      * Rendered at the very beginning of the list.
      */
-    ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListHeaderComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Styling for internal View for ListHeaderComponent
@@ -4241,22 +4245,22 @@ export interface SectionListProps<ItemT, SectionT = DefaultSectionT>
     /**
      * Rendered when the list is empty.
      */
-    ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListEmptyComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Rendered at the very end of the list.
      */
-    ListFooterComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListFooterComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Rendered at the very beginning of the list.
      */
-    ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListHeaderComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Rendered in between each section.
      */
-    SectionSeparatorComponent?: React.ComponentType<any> | React.ReactElement | null;
+    SectionSeparatorComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * A marker property for telling the list to re-render (since it implements PureComponent).
@@ -4463,19 +4467,19 @@ export interface VirtualizedListWithoutRenderItemProps<ItemT> extends ScrollView
      * Rendered when the list is empty. Can be a React Component Class, a render function, or
      * a rendered element.
      */
-    ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListEmptyComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Rendered at the bottom of all the items. Can be a React Component Class, a render function, or
      * a rendered element.
      */
-    ListFooterComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListFooterComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * Rendered at the top of all the items. Can be a React Component Class, a render function, or
      * a rendered element.
      */
-    ListHeaderComponent?: React.ComponentType<any> | React.ReactElement | null;
+    ListHeaderComponent?: React.ComponentType<any> | React.ReactElement<unknown> | null;
 
     /**
      * The default accessor functions assume this is an Array<{key: string}> but you can override
@@ -5006,7 +5010,7 @@ export interface TouchableWithoutFeedbackPropsAndroid {
      *
      * @platform android
      */
-    touchSoundDisabled?: boolean | null;
+    touchSoundDisabled?: boolean;
 }
 
 /**
@@ -5036,7 +5040,7 @@ export interface TouchableWithoutFeedbackProps
     /**
      * If true, disable all interactions for this component.
      */
-    disabled?: boolean | null;
+    disabled?: boolean;
 
     /**
      * This defines how far your touch can start away from the button.
@@ -6895,7 +6899,7 @@ export class SwipeableListView extends React.Component<SwipeableListViewProps> {
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * @see: https://reactnative.dev/docs/actionsheetios#content
+ * @see https://reactnative.dev/docs/actionsheetios#content
  */
 export interface ActionSheetIOSOptions {
     title?: string;
@@ -7425,7 +7429,7 @@ export interface CameraRollStatic {
     /**
      * Saves the image to the camera roll / gallery.
      *
-     * @tag On Android, this is a local URI, such as "file:///sdcard/img.png".
+     * @param tag On Android, this is a local URI, such as "file:///sdcard/img.png".
      * On iOS, the tag can be one of the following:
      *      local URI
      *      assets-library tag
@@ -8447,9 +8451,11 @@ export interface SwitchPropsIOS extends ViewProps {
     tintColor?: ColorValue;
 }
 
-export interface SwitchChangeEvent extends React.SyntheticEvent {
-    value: boolean
+export interface SwitchChangeEventData extends TargetedEvent {
+  value: boolean;
 }
+
+export interface SwitchChangeEvent extends NativeSyntheticEvent<SwitchChangeEventData> {}
 
 export interface SwitchProps extends SwitchPropsIOS {
     /**
@@ -9673,9 +9679,8 @@ export function unstable_enableLogBox(): void;
 /**
  * React Native also implements unstable_batchedUpdates
  */
-export function unstable_batchedUpdates<A, B>(callback: (a: A, b: B) => any, a: A, b: B): void;
-export function unstable_batchedUpdates<A>(callback: (a: A) => any, a: A): void;
-export function unstable_batchedUpdates(callback: () => any): void;
+export function unstable_batchedUpdates<A, R>(callback: (a: A) => R, a: A): R;
+export function unstable_batchedUpdates<R>(callback: () => R): R;
 
 //////////////////////////////////////////////////////////////////////////
 //

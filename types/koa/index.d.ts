@@ -333,7 +333,7 @@ declare interface ContextDelegatedResponse {
     /**
      * Vary on `field`.
      */
-    vary(field: string): void;
+    vary(field: string | string[]): void;
 
     /**
      * Perform a 302 redirect to `url`.
@@ -516,7 +516,7 @@ declare class Application<
      * Return a request handler callback
      * for node's native http/http2 server.
      */
-    callback(): (req: IncomingMessage | Http2ServerRequest, res: ServerResponse | Http2ServerResponse) => void;
+    callback(): (req: IncomingMessage | Http2ServerRequest, res: ServerResponse | Http2ServerResponse) => Promise<void>;
 
     /**
      * Initialize a new context.
@@ -551,7 +551,7 @@ declare namespace Application {
         /**
          * Custom properties.
          */
-        [key: string]: any;
+        [key: PropertyKey]: any;
     }
 
     type Middleware<StateT = DefaultState, ContextT = DefaultContext, ResponseBodyT = any> = compose.Middleware<

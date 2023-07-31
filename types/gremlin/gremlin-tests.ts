@@ -15,6 +15,7 @@ const {
     EnumValue,
     P,
     TextP,
+    Transaction,
     Traversal,
     TraversalStrategies,
     TraversalSideEffects,
@@ -30,6 +31,7 @@ const {
     direction,
     graphSONVersion,
     gryoVersion,
+    merge,
     operator,
     order,
     pick,
@@ -65,13 +67,22 @@ function constructorTests() {
     const eventHandler = (logline: string) => {};
     driverRemoteConnection.addListener('log', eventHandler);
     driverRemoteConnection.open();
+    driverRemoteConnection.isOpen;
+    driverRemoteConnection.isSessionBound;
     driverRemoteConnection.submit(new Bytecode());
+    driverRemoteConnection.createSession();
+    driverRemoteConnection.commit();
+    driverRemoteConnection.rollback();
     driverRemoteConnection.close();
     driverRemoteConnection.removeListener('log', eventHandler);
 
+    client.addListener('log', eventHandler);
     client.open();
+    client.isOpen;
     client.submit(new Bytecode());
+    client.stream(new Bytecode());
     client.close();
+    client.removeListener('log', eventHandler);
 
     resultSet.toArray();
     resultSet.first();
@@ -83,7 +94,7 @@ function constructorTests() {
 function processTests() {
     const bytecode = new Bytecode();
     const enumValue = new EnumValue('Int', 'Test');
-    const p = new P(operator.addall, 1);
+    const p = new P(operator.addAll, 1);
     const textP = new TextP('operator', 'test');
     const traversalStrategies = new TraversalStrategies();
     const traversal = new Traversal(null, traversalStrategies, bytecode);
@@ -92,7 +103,9 @@ function processTests() {
     const traverser = new Traverser({});
     const graphTraversal = new GraphTraversal(null, traversalStrategies, bytecode);
     const graphTraversalSource = new GraphTraversalSource(null, traversalStrategies, bytecode);
+    const transaction = new Transaction(graphTraversalSource);
     const translator = new Translator(graphTraversalSource);
+    const translatorWithString = new Translator('g');
     const anonymousTraversalSource = new AnonymousTraversalSource();
 
     bytecode.addSource('test');
@@ -127,6 +140,8 @@ function processTests() {
     TextP.notEndingWith();
     TextP.notStartingWith();
     TextP.startingWith();
+    TextP.regex();
+    TextP.notRegex();
 
     traversal.getBytecode();
     traversal.hasNext();
@@ -136,13 +151,16 @@ function processTests() {
     traversal.toString();
 
     traversalStrategies.addStrategy(traversalStrategy);
+    traversalStrategies.removeStrategy(traversalStrategy);
     traversalStrategies.applyStrategies(traversal);
 
     traversalStrategy.apply(traversal);
 
     graphTraversal.V();
     graphTraversal.addE();
+    graphTraversal.mergeE();
     graphTraversal.addV();
+    graphTraversal.mergeV();
     graphTraversal.inE();
     graphTraversal.outE();
     graphTraversal.drop();
@@ -151,10 +169,22 @@ function processTests() {
     graphTraversalSource.V();
     graphTraversalSource.addE();
     graphTraversalSource.addV();
+    graphTraversalSource.mergeE();
+    graphTraversalSource.mergeV();
+    graphTraversalSource.tx();
 
     translator.getTraversalSource();
     translator.of(graphTraversalSource);
+    translator.of('g');
     translator.translate(bytecode);
+    translator.translate(graphTraversal);
+    translator.convert({});
+
+    transaction.begin();
+    transaction.close();
+    transaction.commit();
+    transaction.rollback();
+    transaction.isOpen;
 
     anonymousTraversalSource.withGraph(new Graph());
     anonymousTraversalSource.withRemote(new RemoteConnection('test'));
@@ -204,7 +234,7 @@ function functionTests() {
 }
 
 function predefinedEnumTests() {
-    barrier.normsack.toString() === 'normSack';
+    barrier.normSack.toString() === 'normSack';
     cardinality.list.toString() === 'list';
     cardinality.set.toString() === 'set';
     cardinality.single.toString() === 'single';
@@ -218,7 +248,11 @@ function predefinedEnumTests() {
     graphSONVersion['v3_0'].toString() === 'V3_0';
     gryoVersion['v1_0'].toString() === 'V1_0';
     gryoVersion['v3_0'].toString() === 'V3_0';
-    operator.addall.toString() === 'addAll';
+    merge.inV.toString() === 'inV';
+    merge.outV.toString() === 'outV';
+    merge.onCreate.toString() === 'onCreate';
+    merge.onMatch.toString() === 'onMatch';
+    operator.addAll.toString() === 'addAll';
     operator.and.toString() === 'and';
     operator.assign.toString() === 'assign';
     operator.div.toString() === 'div';
@@ -228,11 +262,9 @@ function predefinedEnumTests() {
     operator.mult.toString() === 'mult';
     operator.or.toString() === 'or';
     operator.sum.toString() === 'sum';
-    operator.sumlong.toString() === 'sumLong';
+    operator.sumLong.toString() === 'sumLong';
     order.asc.toString() === 'asc';
-    order.decr.toString() === 'decr';
     order.desc.toString() === 'desc';
-    order.incr.toString() === 'incr';
     order.shuffle.toString() === 'shuffle';
     pick.any.toString() === 'any';
     pick.none.toString() === 'none';
@@ -297,6 +329,7 @@ function dslTests() {
     g.person('test').where(__.hasNotLabel('test')).aged(33);
     g.V().where(__.hasNotLabel('test'));
     g.V().aged(33);
+    g.tx().begin();
 }
 
 async function asyncIteratorTest() {

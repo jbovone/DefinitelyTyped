@@ -14,7 +14,7 @@ import * as dns from 'node:dns';
         foo: number;
     }
 
-    class MyServerResponse extends http.ServerResponse {
+    class MyServerResponse<Request extends http.IncomingMessage = http.IncomingMessage> extends http.ServerResponse<Request> {
         foo: string;
     }
 
@@ -28,7 +28,12 @@ import * as dns from 'node:dns';
     server = http.createServer(reqListener);
     server = http.createServer({ IncomingMessage: MyIncomingMessage });
     server = http.createServer({ ServerResponse: MyServerResponse }, reqListener);
-    server = http.createServer({ insecureHTTPParser: true }, reqListener);
+    server = http.createServer({
+        insecureHTTPParser: true,
+        keepAlive: true,
+        keepAliveInitialDelay: 1000,
+        keepAliveTimeout: 100
+    }, reqListener);
 
     // test public props
     const maxHeadersCount: number | null = server.maxHeadersCount;
@@ -41,6 +46,142 @@ import * as dns from 'node:dns';
     server.setTimeout().setTimeout(1000).setTimeout(() => {}).setTimeout(100, () => {});
     server.closeIdleConnections(); // $ExpectType void
     server.closeAllConnections(); // $ExpectType void
+}
+
+// http Server (with custom IncomingMessage and ServerResponse)
+{
+    let foo: 'foo';
+    let bar: 'bar';
+
+    class MyIncomingMessage extends http.IncomingMessage {
+        foo: typeof foo;
+    }
+
+    class MyServerResponse<
+        Request extends http.IncomingMessage = http.IncomingMessage,
+    > extends http.ServerResponse<Request> {
+        bar: typeof bar;
+    }
+
+    function reqListener(req: MyIncomingMessage, res: MyServerResponse): void {}
+
+    let server = new http.Server({ IncomingMessage: MyIncomingMessage, ServerResponse: MyServerResponse });
+    server = new http.Server({ IncomingMessage: MyIncomingMessage, ServerResponse: MyServerResponse }, (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server = new http.Server({ IncomingMessage: MyIncomingMessage, ServerResponse: MyServerResponse }, reqListener);
+
+    server.addListener('checkContinue', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.addListener('checkExpectation', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.addListener('connect', req => {
+        foo = req.foo;
+    });
+    server.addListener('request', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.addListener('upgrade', req => {
+        foo = req.foo;
+    });
+
+    server.on('checkContinue', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.on('checkExpectation', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.on('connect', req => {
+        foo = req.foo;
+    });
+    server.on('request', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.on('upgrade', req => {
+        foo = req.foo;
+    });
+
+    server.once('checkContinue', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.once('checkExpectation', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.once('connect', req => {
+        foo = req.foo;
+    });
+    server.once('request', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.once('upgrade', req => {
+        foo = req.foo;
+    });
+
+    server.prependListener('checkContinue', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.prependListener('checkExpectation', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.prependListener('connect', req => {
+        foo = req.foo;
+    });
+    server.prependListener('request', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.prependListener('upgrade', req => {
+        foo = req.foo;
+    });
+
+    server.prependOnceListener('checkContinue', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.prependOnceListener('checkExpectation', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.prependOnceListener('connect', req => {
+        foo = req.foo;
+    });
+    server.prependOnceListener('request', (req, res) => {
+        foo = req.foo;
+        bar = res.bar;
+        foo = res.req.foo;
+    });
+    server.prependOnceListener('upgrade', req => {
+        foo = req.foo;
+    });
 }
 
 // http IncomingMessage
@@ -61,9 +202,11 @@ import * as dns from 'node:dns';
 
     // test headers
     res.setHeader('Content-Type', 'text/plain')
-    .setHeader('Return-Type', 'this');
+    .setHeader('Return-Type', 'this')
+    .appendHeader('Content-Type', 'text/html');
     const bool: boolean = res.hasHeader('Content-Type');
     const headers: string[] = res.getHeaderNames();
+    const headerValue: string[] | undefined = incoming.headersDistinct['content-type'];
 
     // trailers
     res.addTrailers([
@@ -73,6 +216,28 @@ import * as dns from 'node:dns';
         ['X-foO', 'OxOxOxO']
     ] as ReadonlyArray<[string, string]>);
     res.addTrailers({ 'x-foo': 'bar' });
+
+    // writeContinue
+    res.writeContinue();
+    res.writeContinue(() => {});
+
+    // writeEarlyHints
+    const earlyHintsLink = '</styles.css>; rel=preload; as=style';
+    res.writeEarlyHints({
+        link: earlyHintsLink,
+    });
+    const earlyHintsLinks = [
+        '</styles.css>; rel=preload; as=style',
+        '</scripts.js>; rel=preload; as=script',
+    ];
+    res.writeEarlyHints({
+        link: earlyHintsLinks,
+        'x-trace-id': 'id for diagnostics'
+    });
+    const earlyHintsCallback = () => console.log('early hints message sent');
+    res.writeEarlyHints({
+        link: earlyHintsLinks
+    }, earlyHintsCallback);
 
     // writeHead
     res.writeHead(200, 'OK\r\nContent-Type: text/html\r\n').end().end();
@@ -178,6 +343,11 @@ import * as dns from 'node:dns';
     http.request({ agent: undefined });
     // ensure compatibility with url.parse()
     http.request(url.parse("http://www.example.org/xyz"));
+
+    // ensure extends from EventEmitter
+    agent.on('free', () => {});
+    agent.once('free', () => {});
+    agent.emit('free');
 }
 
 {
@@ -345,6 +515,7 @@ import * as dns from 'node:dns';
     _bool = server.emit("checkExpectation", _req, _res);
     _bool = server.emit("clientError", _err, _socket);
     _bool = server.emit("connect", _req, _socket, _head);
+    _bool = server.emit("dropRequest", _req, _res);
     _bool = server.emit("request", _req, _res);
     _bool = server.emit("upgrade", _req, _socket, _head);
 
@@ -364,6 +535,10 @@ import * as dns from 'node:dns';
       _req = req;
       _socket = socket;
       _head = head;
+    });
+    server = server.on("dropRequest", (req, socket) => {
+      _req = req;
+      _socket = socket;
     });
     server = server.on("request", (req, res) => {
       _req = req;
@@ -392,6 +567,10 @@ import * as dns from 'node:dns';
       _socket = socket;
       _head = head;
     });
+    server = server.once("dropRequest", (req, socket) => {
+      _req = req;
+      _socket = socket;
+    });
     server = server.once("request", (req, res) => {
       _req = req;
       _res = res;
@@ -418,6 +597,10 @@ import * as dns from 'node:dns';
       _req = req;
       _socket = socket;
       _head = head;
+    });
+    server = server.prependListener("dropRequest", (req, socket) => {
+      _req = req;
+      _socket = socket;
     });
     server = server.prependListener("request", (req, res) => {
       _req = req;
@@ -446,6 +629,10 @@ import * as dns from 'node:dns';
       _socket = socket;
       _head = head;
     });
+    server = server.prependOnceListener("dropRequest", (req, socket) => {
+      _req = req;
+      _socket = socket;
+    });
     server = server.prependOnceListener("request", (req, res) => {
       _req = req;
       _res = res;
@@ -460,5 +647,12 @@ import * as dns from 'node:dns';
 {
   http.request({ lookup: undefined });
   http.request({ lookup: dns.lookup });
-  http.request({ lookup: (hostname, options, cb) => { cb(null, '', 1); } });
+  http.request({ lookup: (hostname, options, cb) => { cb(null, [{ address: '', family: 1 }]); } });
+}
+
+{
+    http.validateHeaderName('Location');
+    http.validateHeaderValue('Location', '/');
+
+    http.setMaxIdleHTTPParsers(1337);
 }

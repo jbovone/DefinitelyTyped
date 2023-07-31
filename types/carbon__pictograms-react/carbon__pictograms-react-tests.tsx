@@ -22,6 +22,16 @@ import {
     Bluepages,
     ContentDesign,
     AiExplainability,
+    RedHatApplications,
+    AudioData,
+    Visibility,
+    IbmZ,
+    IbmZAndLinuxoneMultiFrame,
+    Ai,
+    AppModernization,
+    MovingDolly,
+    AdvocateMask,
+    UserMask,
 } from "@carbon/pictograms-react";
 
 <Airplane />; // $ExpectType Element
@@ -47,3 +57,13 @@ import {
 <Bluepages />; // $ExpectType Element
 <ContentDesign />; // $ExpectType Element
 <AiExplainability />; // $ExpectType Element
+<RedHatApplications />; // $ExpectType Element
+<AudioData />; // $ExpectType Element
+<Visibility />; // $ExpectType Element
+<IbmZ />; // $ExpectType Element
+<IbmZAndLinuxoneMultiFrame />; // $ExpectType Element
+<Ai />; // $ExpectType Element
+<AppModernization />; // $ExpectType Element
+<MovingDolly />; // $ExpectType Element
+<AdvocateMask />; // $ExpectType Element
+<UserMask />; // $ExpectType Element

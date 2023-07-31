@@ -2,7 +2,7 @@
 
 > The repository for *high quality* TypeScript type definitions.
 
-*You can also read this README in [Español](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.es.md), [한국어](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.ko.md), [Русский](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.ru.md), [中文](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.zh.md), [Português](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.pt.md), [Italiano](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.it.md)
+*You can also read this README in [Español](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.es.md), [한국어](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.ko.md), [Русский](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.ru.md), [简体中文](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.zh-Hans.md), [Português](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.pt.md), [Italiano](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.it.md)
 and [日本語](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/README.ja.md)!*
 
 *Link to [Admin manual](./docs/admin.md)*
@@ -12,7 +12,7 @@ and [日本語](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/R
 This section tracks the health of the repository and publishing process.
 It may be helpful for contributors experiencing any issues with their PRs and packages.
 
-* Most recent build [type-checked/linted](https://github.com/Microsoft/dtslint) cleanly: [![Build Status](https://dev.azure.com/definitelytyped/DefinitelyTyped/_apis/build/status/DefinitelyTyped.DefinitelyTyped?branchName=master)](https://dev.azure.com/definitelytyped/DefinitelyTyped/_build/latest?definitionId=1&branchName=master)
+* Most recent build [type-checked/linted](https://github.com/microsoft/DefinitelyTyped-tools/tree/master/packages/dtslint) cleanly: [![Build Status](https://dev.azure.com/definitelytyped/DefinitelyTyped/_apis/build/status/DefinitelyTyped.DefinitelyTyped?branchName=master)](https://dev.azure.com/definitelytyped/DefinitelyTyped/_build/latest?definitionId=1&branchName=master)
 * All packages are type-checking/linting cleanly on typescript@next: [![Build status](https://dev.azure.com/definitelytyped/DefinitelyTyped/_apis/build/status/Nightly%20dtslint)](https://dev.azure.com/definitelytyped/DefinitelyTyped/_build/latest?definitionId=8)
 * All packages are being [published to npm](https://github.com/microsoft/DefinitelyTyped-tools/tree/master/packages/publisher) in under an hour and a half: [![Publish Status](https://dev.azure.com/definitelytyped/DefinitelyTyped/_apis/build/status/DefinitelyTyped.types-publisher-watchdog?branchName=master)](https://dev.azure.com/definitelytyped/DefinitelyTyped/_build/latest?definitionId=5&branchName=master)
 * [typescript-bot](https://github.com/typescript-bot) has been active on Definitely Typed [![Activity Status](https://dev.azure.com/definitelytyped/DefinitelyTyped/_apis/build/status/DefinitelyTyped.typescript-bot-watchdog?branchName=master)](https://dev.azure.com/definitelytyped/DefinitelyTyped/_build/latest?definitionId=6&branchName=master)
@@ -42,20 +42,21 @@ You may need to add a `types` reference if you're not using modules:
 See more in the [handbook](https://www.typescriptlang.org/docs/handbook/declaration-files/consumption.html).
 
 For an npm package "foo", typings for it will be at "@types/foo".
-If you can't find your package, look for it on [TypeSearch](https://microsoft.github.io/TypeSearch/).
 
-If you still can't find it, check if it [bundles](https://www.typescriptlang.org/docs/handbook/declaration-files/publishing.html) its own typings.
-This is usually provided in a `"types"` or `"typings"` field in the `package.json`,
-or just look for any ".d.ts" files in the package and manually include them with a `/// <reference path="" />`.
+If your package has typings specified using the ``types`` or ``typings`` key in its ``package.json``, the npm registry will display that the package has available bindings like so:
+
+![image](https://user-images.githubusercontent.com/30049719/228748963-56fabfd1-9101-42c2-9891-b586b775b01e.png)
+
+If you still can't find the typings, just look for any ".d.ts" files in the package and manually include them with a `/// <reference path="" />`.
 
 ### Support Window
 
 Definitely Typed only tests packages on versions of TypeScript that are less than 2 years old.
 
 <details>
-<summary>Currently versions 4.0 and above are tested...</summary>
+<summary>Currently versions 4.1 and above are tested...</summary>
 
-If you're using TypeScript 2.0 to 3.9, you can still try installing `@types` packages &mdash; the majority of packages don't use fancy new TypeScript features.
+If you're using TypeScript 2.0 to 4.0, you can still try installing `@types` packages &mdash; the majority of packages don't use fancy new TypeScript features.
 But there's no guarantee that they'll work.
 Here is the support window:
 
@@ -220,7 +221,7 @@ If a package was never on Definitely Typed, it does not need to be added to `not
 
 Test your changes by running `npm test <package to test>` where `<package to test>` is the name of your package.
 
-This script uses [dtslint](https://github.com/microsoft/dtslint) to run the TypeScript compiler against your dts files.
+This script uses [dtslint](https://github.com/microsoft/DefinitelyTyped-tools/tree/master/packages/dtslint) to run the TypeScript compiler against your dts files.
 
 Once you have all your changes ready, use `npm run test-all` to see how your changes affect other modules.
 
@@ -346,6 +347,18 @@ This list is updated by a human, which gives us the chance to make sure that `@t
 In the rare case that an `@types` package is deleted and removed in favor of types shipped by the source package AND you need to depend on the old, removed `@types` package, you can add a dependency on an `@types` package.
 Be sure to explain this when adding to the list of allowed packages so that the human maintainer knows what is happening.
 
+The second reason to create your own package.json is to specify ES modules.
+If the implementation package uses ESM and specifies `"type": "module"`, then you should add a package.json with the same:
+
+```json
+{
+    "private": true,
+    "type": "module"
+}
+```
+
+This also applies if the implementation package has `exports` in its package.json.
+
 #### `OTHER_FILES.txt`
 
 If a file is neither tested nor referenced in `index.d.ts`, add it to a file named `OTHER_FILES.txt`. This file is a list of other files that need to be included in the typings package, one file per line.
@@ -353,7 +366,7 @@ If a file is neither tested nor referenced in `index.d.ts`, add it to a file nam
 #### Common mistakes
 
 * First, follow advice from the [handbook](https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html).
-* Formatting: Use 4 spaces. Prettier is set up on this repo, so you can run `npm run prettier -- --write path/to/package/**/*.ts`. [When using assertions](https://github.com/SamVerschueren/tsd#assertions), add `// prettier-ignore` exclusion to mark line(s) of code as excluded from formatting:
+* Formatting: Use 4 spaces. Prettier is set up on this repo, so you can run `npm run prettier -- --write 'path/to/package/**/*.ts'`. [When using assertions](https://github.com/SamVerschueren/tsd#assertions), add `// prettier-ignore` exclusion to mark line(s) of code as excluded from formatting:
   ```tsx
   // prettier-ignore
   // @ts-expect-error
@@ -370,7 +383,7 @@ If a file is neither tested nor referenced in `index.d.ts`, add it to a file nam
   Example where a type parameter is acceptable: `function id<T>(value: T): T;`.
   Example where it is not acceptable: `function parseJson<T>(json: string): T;`.
   Exception: `new Map<string, number>()` is OK.
-* Using the types `Function` and `Object` is almost never a good idea. In 99% of cases it's possible to specify a more specific type. Examples are `(x: number) => number` for [functions](https://www.typescriptlang.org/docs/handbook/functions.html#function-types) and `{ x: number, y: number }` for objects. If there is no certainty at all about the type, [`any`](https://www.typescriptlang.org/docs/handbook/basic-types.html#any) is the right choice, not `Object`. If the only known fact about the type is that it's some object, use the type [`object`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#object-type), not `Object` or `{ [key: string]: any }`.
+* Using the types `Function` and `Object` is almost never a good idea. In 99% of cases it's possible to specify a more specific type. Examples are `(x: number) => number` for [functions](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-type-expressions) and `{ x: number, y: number }` for objects. If there is no certainty at all about the type, [`any`](https://www.typescriptlang.org/docs/handbook/basic-types.html#any) is the right choice, not `Object`. If the only known fact about the type is that it's some object, use the type [`object`](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#object-type), not `Object` or `{ [key: string]: any }`.
 * `var foo: string | any`:
   When `any` is used in a union type, the resulting type is still `any`. So while the `string` portion of this type annotation may _look_ useful, it in fact offers no additional typechecking over simply using `any`.
   Depending on the intention, acceptable alternatives could be `any`, `string`, or `string | object`.
@@ -397,6 +410,10 @@ To Add yourself as a Definition Owner:
   ```
 
 Once a week the Definition Owners are synced to the file [.github/CODEOWNERS](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/.github/CODEOWNERS) which is our source of truth.
+
+## The history of Definitely Typed
+
+Definitely Typed is one of the most active repositories on GitHub. You might have wondered how the project came to be. A history of Definitely Typed exists, that was put together by @johnnyreilly. It tells the story of the early days of Definitely Typed, from a repository created by @borisyankov, to the point where it became a pivotal part of the TypeScript ecosystem. [You can read the story of Definitely Typed here](https://johnnyreilly.com/definitely-typed-the-movie).  
 
 ## FAQ
 
@@ -445,6 +462,16 @@ Here are the [currently requested definitions](https://github.com/DefinitelyType
 #### What about type definitions for the DOM?
 
 If types are part of a web standard, they should be contributed to [TypeScript-DOM-lib-generator](https://github.com/Microsoft/TypeScript-DOM-lib-generator) so that they can become part of the default `lib.dom.d.ts`.
+
+#### What about type definitions with no matching package?
+
+If there's no source Javascript code at all, for example if you're writing helper types or types for a spec, you should publish the types yourself, not on Definitely Typed.
+Because they're meant to provide types for existing Javascript code, `@types` packages are not meant to be imported directly.
+That is, you shouldn't create a Definitely Typed package that's meant to used like `import type { ... } from "@types/foo"`.
+Nor should you expect to write `import type { ... } from "foo"` when there's no `foo` installed.
+
+This is different from providing types for a browser-only Javascript library or types for an entire environment like node, bun, et al.
+There, the types are either resolved implicitly or using `/// <references types="foo" />`.
 
 #### Should I add an empty namespace to a package that doesn't export a module to use ES6 style imports?
 
@@ -593,8 +620,8 @@ At the time of writing, the [history v2 `tsconfig.json`](https://github.com/%44e
 If there are other packages in Definitely Typed that are incompatible with the new version, you will need to add path mappings to the old version.
 You will also need to do this recursively for packages depending on the old version.
 
-For example, `react-router` depends on `history@2`, so [react-router `tsconfig.json`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react-router/v2/tsconfig.json) has a path mapping to `"history": [ "history/v2" ]`.
-Transitively, `react-router-bootstrap` (which depends on `react-router`) also needed to add the same path mapping (`"history": [ "history/v2" ]`) in its `tsconfig.json` until its `react-router` dependency was updated to the latest version.
+For example, `browser-sync` depends on `micromatch@2`, so [browser-sync `tsconfig.json`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/browser-sync/tsconfig.json) has a path mapping to `"micromatch": [ "micromatch/v2" ]`.
+Transitively, `browser-sync-webpack-plugin` (which depends on `browser-sync`) also needed to add the same path mapping (`"micromatch": [ "micromatch/v2" ]`) in its `tsconfig.json` until its `browser-sync` dependency was updated to the latest version.
 
 Also, `/// <reference types=".." />` will not work with path mapping, so dependencies must use `import`.
 
@@ -614,8 +641,10 @@ When `dts-gen` is used to scaffold a scoped package, the `paths` property has to
 
 ```json
 {
-  "paths": {
-    "@foo/*": ["foo__*"]
+  "compilerOptions": {
+    "paths": {
+      "@foo/*": ["foo__*"]
+    }
   }
 }
 ```

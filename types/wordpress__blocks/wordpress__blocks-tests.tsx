@@ -1,6 +1,12 @@
 import * as blocks from '@wordpress/blocks';
 import { select, dispatch } from '@wordpress/data';
 
+// $ExpectType BlocksStoreDescriptor
+blocks.store;
+
+// $ExpectType "core/blocks"
+blocks.store.name;
+
 const BLOCK: blocks.Block<{ foo: string }> = {
     attributes: {
         foo: {
@@ -20,7 +26,7 @@ const BLOCK: blocks.Block<{ foo: string }> = {
                 return { foo: attributes.bar };
             },
             save: () => null,
-        }
+        },
     ],
     edit: () => null,
     icon: {
@@ -56,7 +62,7 @@ const BLOCK_INSTANCE: blocks.BlockInstance<{ foo: string }> = {
         </div>
     );
     const Enhanced = blocks.withBlockContentContext(OriginalComponent);
-    <Enhanced foo="bar" />;
+    <Enhanced foo="bar" BlockContent="cont" />;
 })();
 
 //
@@ -103,7 +109,7 @@ blocks.findTransform(
             },
         },
     ],
-    transform => transform.type === 'block'
+    transform => transform.type === 'block',
 );
 
 declare const RAW_TRANSFORM_ARRAY: Array<blocks.TransformRaw<any>>;
@@ -357,7 +363,7 @@ blocks.registerBlockType<{ foo: string }>('my/foo', {
 blocks.registerBlockType<{ foo: object }>('my/foo', {
     attributes: {
         foo: {
-            type: 'object'
+            type: 'object',
         },
     },
     icon: {
@@ -391,6 +397,7 @@ blocks.registerBlockType({
     title: 'Notice',
     category: 'text',
     parent: ['core/group'],
+    ancestor: ['core/group'],
     icon: 'star-half',
     description: 'Shows warning, error or success notices…',
     keywords: ['alert', 'message'],
@@ -409,6 +416,21 @@ blocks.registerBlockType({
     usesContext: ['groupId'],
     supports: {
         align: true,
+        color: {
+            background: true,
+            gradients: false,
+            link: true,
+            text: true,
+        },
+        spacing: {
+            blockGap: ['horizontal'],
+            margin: ['top', 'left'],
+        },
+        typography: {
+            fontSize: true,
+            lineHeight: false,
+        },
+        lock: true,
     },
     styles: [
         { name: 'default', label: 'Default', isDefault: true },
@@ -450,6 +472,7 @@ blocks.registerBlockType(
         title: 'Notice',
         category: 'text',
         parent: ['core/group'],
+        ancestor: ['core/group'],
         icon: 'star-half',
         description: 'Shows warning, error or success notices…',
         keywords: ['alert', 'message'],
@@ -500,7 +523,7 @@ blocks.registerBlockType(
         editorStyle: 'file:./build/index.css',
         style: 'file:./build/style.css',
     },
-    { edit: () => null, save: () => null }
+    { edit: () => null, save: () => null },
 );
 
 // $ExpectType void
@@ -528,6 +551,14 @@ blocks.getBlockVariations('core/columns');
 blocks.registerBlockVariation('core/columns', {
     name: 'core/columns/variation',
     title: 'Core Column Variation',
+    innerBlocks: [
+        [ 'core/paragraph' ],
+        [
+            'core/paragraph',
+            { placeholder: 'Enter side content...' },
+            [ [ 'core/paragraph' ] ]
+        ],
+    ],
 });
 
 // $ExpectType void
@@ -580,7 +611,7 @@ blocks.doBlocksMatchTemplate([BLOCK_INSTANCE]);
 // $ExpectType boolean
 blocks.doBlocksMatchTemplate(
     [BLOCK_INSTANCE, BLOCK_INSTANCE],
-    [['core/test-block'], ['core/test-block-2', {}, [['core/test-block']]], ['core/test-block-2']]
+    [['core/test-block'], ['core/test-block-2', {}, [['core/test-block']]], ['core/test-block-2']],
 );
 
 // $ExpectType BlockInstance<{ [k: string]: any; }>[]
@@ -592,11 +623,24 @@ blocks.synchronizeBlocksWithTemplate([BLOCK_INSTANCE, BLOCK_INSTANCE]);
 // $ExpectType BlockInstance<{ [k: string]: any; }>[]
 blocks.synchronizeBlocksWithTemplate(
     [BLOCK_INSTANCE, BLOCK_INSTANCE],
-    [['my/foo', { foo: 'bar' }], ['my/foo', { foo: 'bar' }]]
+    [
+        ['my/foo', { foo: 'bar' }],
+        ['my/foo', { foo: 'bar' }],
+    ],
 );
 
 // $ExpectType BlockInstance<{ [k: string]: any; }>[]
-blocks.synchronizeBlocksWithTemplate(undefined, [['my/foo', { foo: 'bar' }], ['my/foo', { foo: 'bar' }]]);
+blocks.synchronizeBlocksWithTemplate(undefined, [
+    ['my/foo', { foo: 'bar' }],
+    ['my/foo', { foo: 'bar' }],
+]);
+
+//
+// editor interaction
+// ----------------------------------------------------------------------------
+
+// $ExpectType ComponentType<BlockEditProps<{ foo: string; }>> | undefined
+blocks.getBlockType<{ foo: string; }>('my/foo')?.edit;
 
 //
 // utils
